@@ -15,6 +15,7 @@
 
       defaultPackage.${sys} = self.packages.${sys}.${pkgName} ;
 
+      # To open up a hoogle server, type `hoogle server --local`
       devShells.${sys}.default = pkgs.haskellPackages.shellFor {
         packages = _ : [ self.packages.${sys}.${pkgName} ];
         withHoogle = true;
