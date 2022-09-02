@@ -22,6 +22,7 @@
         buildInputs = [ 
           pkgs.haskellPackages.haskell-language-server
           pkgs.haskellPackages.cabal-install
+          pkgs.pandoc
         ];
         shellHook = ''
             export PS1="\\e[1;34m[nix-develop] \\e[0m"$PS1

@@ -310,3 +310,9 @@ TSWLatexianTemp*
 
 # Makeindex log files
 *.lpz
+
+##################################
+# Additional ignores
+##################################
+project.hoo
+project.warn

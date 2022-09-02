@@ -32,6 +32,15 @@ executable pletbjerg-github-io
     build-depends:
         base,
         hakyll,
+        pandoc,
+        pandoc-types,
+        data-default,
+        bytestring,
+        text,
+        binary,
+        doclayout,
+        doctemplates,
 
     hs-source-dirs:   app
     default-language: Haskell2010
+

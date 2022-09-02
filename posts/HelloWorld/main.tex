@@ -1,0 +1,50 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{verbatim}
+\usepackage{listings}
+
+\DeclareMathOperator{\fl}{fl}
+\newcommand{\bangle}[1]{\langle #1 \rangle}
+\newcommand{\bcurly}[1]{\{ #1 \}}
+\newcommand{\TODO}[1]{\textbf{TODO : #1}}
+
+\theoremstyle{plain}% default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem*{cor}{Corollary}
+\newtheorem*{KL}{Klein’s Lemma}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+
+\newtheorem{exmp}{Example}[section]
+\newtheorem{xca}[exmp]{Exercise}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remark}
+\newtheorem*{note}{Note}
+\newtheorem{case}{Case}
+
+\title{Hello World!}
+\author{Christian Pletbjerg}
+
+\begin{document}
+\maketitle
+
+\section{Hello World}
+Hello world! Testing some math $x = 3$... How about some more complicated math?
+\begin{align}
+    F( g \circ f ) 
+        &=  F( g ) \circ F (f )
+        \\
+        &=  cool
+\end{align}
+And this is what verbatim outputs
+\begin{lstlisting}[language=Haskell]
+map :: (a -> b) -> [a] -> [b]
+map _f [] = []
+map f (a:as) = f a : map f as
+\end{lstlisting}
+
+asdf 
+
+\end{document}
