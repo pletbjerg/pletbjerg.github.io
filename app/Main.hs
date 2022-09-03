@@ -93,6 +93,8 @@ postCompilerWithPandocTemplate template = Hakyll.getResourceBody >>= \item ->
                     , writerHighlightStyle = Just Highlighting.haddock
                     , writerTemplate = Just template
                     , writerReferenceLinks = True
+                    , writerNumberSections = True 
+                    , writerTableOfContents = True 
                     }
             in Readers.readLaTeX readerOpts (Text.pack $ itemBody item) >>= 
                 \pandoc -> (pandoc,) <$> Writers.writeHtml5String writerOpts pandoc 

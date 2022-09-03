@@ -223,7 +223,15 @@
 <h1 class="title">Hello World!</h1>
 <p class="author">Christian Pletbjerg</p>
 </header>
-<h1>Hello World</h1>
+<nav id="TOC" role="doc-toc">
+<ul>
+<li><span class="toc-section-number">1</span> Hello World</li>
+<li><span class="toc-section-number">2</span> Hello World</li>
+<li><span class="toc-section-number">3</span> Hello World</li>
+</ul>
+</nav>
+<h1 data-number="1"><span class="header-section-number">1</span> Hello
+World</h1>
 <p>Hello world! Testing some math <span class="math inline">\(x =
 3\)</span>... How about some more complicated math? <span class="math display">\[\begin{aligned}
     F( g \circ f )
@@ -234,6 +242,10 @@ outputs</p>
 <div class="sourceCode" id="cb1" data-language="Haskell"><pre class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span><span class="ot"> ::</span> (a <span class="ot">-&gt;</span> b) <span class="ot">-&gt;</span> [a] <span class="ot">-&gt;</span> [b]</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span> _f [] <span class="ot">=</span> []</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">map</span> f (a<span class="op">:</span>as) <span class="ot">=</span> f a <span class="op">:</span> <span class="fu">map</span> f as</span></code></pre></div>
+<h1 data-number="2"><span class="header-section-number">2</span> Hello
+World</h1>
 <p>asdf</p>
+<h1 data-number="3"><span class="header-section-number">3</span> Hello
+World</h1>
 </body>
 </html>
