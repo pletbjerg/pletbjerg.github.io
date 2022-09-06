@@ -1,9 +1,7 @@
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE TupleSections #-}
 module Main where
 
 import Development.Shake
@@ -103,6 +101,8 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
         let htmlPostPaths = ["docs" </> "posts" </> texPost -<.> "html" | texPost <- texPosts]
             pandocPostPaths = ["docs" </> "posts" </> texPost -<.> "json" | texPost <- texPosts]
 
+        -- Assert that we need to both the HTML posts and the pandoc JSON
+        -- representations.
         need $ htmlPostPaths ++ pandocPostPaths 
 
         let templatePath = "templates/index.html"
@@ -128,7 +128,7 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                     --      2. the @link@ i.e., the relative URL which contains
                     --      the post.
                     --
-                    --      2. the @date@ TODO it doesn't do this yet.
+                    --      3. the @date@ TODO it doesn't do this yet.
                     flip (Pandoc.defField "archive") (writerVariables defaultWriterOpts) $ 
                     map (first dropDirectory1) (zip htmlPostPaths pandocPosts) <&> 
                         \(htmlPostPath, Pandoc meta _blocks) -> 
@@ -146,7 +146,9 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
         void $ liftIO $ Pandoc.writeFile indexHtmlPath indexHtml
 
     -- Building the LaTeX to HTML page for *posts*, and saves the 'Pandoc'
-    -- intermediate representation
+    -- intermediate representation. 
+    --
+    -- Note we match on both the HTML and the pandoc JSON file.
     ["docs/posts/*/*.html", "docs/posts/*/*.json"] &%> \[htmlPostPath, jsonPostPath] -> do
         let texPostPath = dropDirectory1 htmlPostPath -<.> "tex"
             templatePath = "templates/post.html"

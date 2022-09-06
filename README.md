@@ -5,9 +5,16 @@ All commands assume that you are in
 ```
 nix develop
 ```
-## Watching the website
+## Building the website.
+Execute the following command.
 ```
-cabal run pletbjerg-github-io.cabal -- watch
+cabal run pletbjerg-github-io.cabal
+```
+
+## Cleaning the website.
+Execute the following command.
+```
+cabal run pletbjerg-github-io.cabal -- clean
 ```
 
 
@@ -17,12 +24,12 @@ To start a hoogle server, type
 hoogle server --local
 ```
 
-## CSS
-The CSS is the default from Pandocs
+## Pandoc template defaults
+The HTML default template from Pandocs is given by the following command.
 ```
 pandoc -D html
 ```
-and
+Moreover, the CSS default template is given by the following command.
 ```
 pandoc --print-default-data-file=templates/styles.html -D templates/styles.html
 ```
