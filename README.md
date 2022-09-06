@@ -1,4 +1,5 @@
 # pletbjerg.github.io
+A repository for [pletbjerg.github.io](pletbjerg.github.io).
 
 # Development
 All commands assume that you are in 
@@ -16,7 +17,6 @@ Execute the following command.
 ```
 cabal run pletbjerg-github-io.cabal -- clean
 ```
-
 
 ## Starting a hoogle server
 To start a hoogle server, type 
