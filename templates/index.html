@@ -34,7 +34,7 @@ $endif$
   <![endif]-->
 </head>
 <body>
-<p> <a href="../../index.html">index</a> </p> 
+<!-- <p> <a href="/index.html">/index.html</a> </p> --!>
 $for(include-before)$
 $include-before$
 $endfor$
@@ -67,6 +67,16 @@ $table-of-contents$
 </nav>
 $endif$
 $body$
+<!-- Start of archive --!>
+<h1>Archive</h1>
+<ul>
+    $for(archive)$
+        <li>
+            <a href="$archive.link$">$archive.title$</a>
+        </li>
+    $endfor$
+</ul>
+<!-- End of archive --!>
 $for(include-after)$
 $include-after$
 $endfor$

@@ -31,14 +31,16 @@ executable pletbjerg-github-io
     -- other-extensions:
     build-depends:
         base,
-        hakyll,
+        shake,
         pandoc,
         pandoc-types,
         data-default,
         bytestring,
+        aeson,
         text,
         binary,
         doclayout,
+        mtl,
         doctemplates,
 
     hs-source-dirs:   app

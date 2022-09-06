@@ -26,6 +26,19 @@
         ];
         shellHook = ''
             export PS1="\\e[1;34m[nix-develop] \\e[0m"$PS1
+
+            # A quick alias for easily generating metadata
+            genMetadata ()  {
+                local d=$(date +"%Y-%m-%d")
+
+                if [ ! -e "main.meta" ]; then
+                    echo '{ "date" : "$d" }' > main.meta
+                else
+                    echo "error metadata already exists"
+                    return -1;
+                fi
+            }
+            
         '';
       };
 

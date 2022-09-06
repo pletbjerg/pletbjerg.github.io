@@ -4,169 +4,176 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE TupleSections #-}
-{-# LANGUAGE UndecidableInstances #-}
 module Main where
 
-import Hakyll 
-    ( Configuration (deployCommand, destinationDirectory)
-    , Compiler
-    , Context
-    , Writable
-    , Item (itemIdentifier, itemBody)
-    , Identifier
-    , Snapshot
-    )
+import Development.Shake
+import Development.Shake.FilePath
+
+import Control.Arrow
 import Control.Monad
-import qualified Hakyll
-import Text.Pandoc (Pandoc, ReaderOptions (..), WriterOptions (..), HTMLMathMethod (..), Template)
-import qualified Text.Pandoc as Pandoc
-import qualified Text.Pandoc.Readers as Readers
-import qualified Text.Pandoc.Writers as Writers
-import qualified Text.Pandoc.UTF8 as UTF8
-import qualified Text.Pandoc.Options as Options
-import Data.ByteString (ByteString)
+import Control.Monad.Except
+import Data.Functor
+import Data.Maybe 
+
 import Data.Text (Text)
-import qualified Data.Text as Text
-import qualified Text.Pandoc.Highlighting as Highlighting
-import qualified Text.Pandoc.Templates as Templates
-import qualified System.IO.Unsafe as Unsafe
-import Text.DocTemplates (ToContext)
-import Text.DocTemplates.Internal (Variable, Pipe, Alignment, Border, TemplateTarget, TemplateMonad (getPartial))
-import Data.Binary (Binary)
-import Text.DocLayout (Doc)
-import Data.Typeable (Typeable)
-import Text.Pandoc.Definition (Meta,Block,MetaValue,Inline,QuoteType, Format, Citation, ListNumberStyle, CitationMode, MathType, ListNumberDelim,Caption,Alignment, ColWidth,TableHead, Row, TableBody, RowHeadColumns, TableFoot, Cell, RowSpan, ColSpan)
 
-import Debug.Trace 
+import Text.Pandoc (Pandoc (..), MetaValue (..), ReaderOptions (..), WriterOptions (..), Template)
+import Text.Pandoc.Options ( HTMLMathMethod (MathJax))
+import qualified Text.Pandoc.Templates as Pandoc
+import qualified Text.Pandoc.Definition as Pandoc
+import qualified Text.Pandoc.Options as Pandoc
+import qualified Text.Pandoc.Class as Pandoc
+import qualified Text.Pandoc.UTF8 as Pandoc
+import qualified Text.Pandoc.Highlighting as Pandoc
+import qualified Text.Pandoc.Readers.LaTeX as Pandoc
+import qualified Text.Pandoc.Writers as Pandoc
+import qualified Text.Pandoc.Shared as Pandoc
+import qualified Text.Pandoc.Writers.Shared as Pandoc
 
+import qualified Text.DocTemplates as DocTemplates
+import qualified Text.DocLayout as DocLayout
 
--- * Constants 
+import qualified Data.Aeson as Aeson
 
--- | Configuration for the main hakyll call.
-conf :: Configuration 
-conf = Hakyll.defaultConfiguration
-    { deployCommand = "git add docs && git commit -m 'Deployment' && git push"
-    , destinationDirectory = "docs/"
+import Debug.Trace
+
+-- | 'defaultReaderOpts' are the default reader options for pandocs.
+defaultReaderOpts :: ReaderOptions
+defaultReaderOpts = Pandoc.def
+    { readerStandalone = True
     }
 
+-- | 'defaultWriterOpts' are the default writer options for pandocs
+defaultWriterOpts :: WriterOptions
+defaultWriterOpts = Pandoc.def
+    { writerHTMLMathMethod = MathJax Pandoc.defaultMathJaxURL
+    , writerHighlightStyle = Just Pandoc.pygments
+    , writerReferenceLinks = True
+    , writerNumberSections = True 
+    -- Eh, we don't really need this I suppose.
+    -- , writerTableOfContents = True 
+    }
 
--- * Post compilation
--- | 'getResourceBodyText' gets the resource body as 'Text'.
-getResourceBodyText :: Compiler (Item Text)
-getResourceBodyText = fmap (fmap Text.pack) Hakyll.getResourceBody
+-- | 'compileTemplate' compiles the given template. N.B. you do not need to
+-- 'need' the 'FilePath' given, and you do not need to 'need' any required
+-- partial templates.
+compileTemplate :: 
+    -- | File path of the 'Template' to compile.
+    FilePath -> 
+    -- | Compiled 'Template'
+    Action (Template Text)
+compileTemplate templatePath = runTemplateAction $ do
+    liftAction $ need [templatePath]
+    templateContents <- liftIO $ Pandoc.runIOorExplode $ Pandoc.getTemplate templatePath 
+    eitherTemplate <- Pandoc.compileTemplate templatePath templateContents 
+    liftIO $ liftEither $ Pandoc.mapLeft userError eitherTemplate
 
--- | 'pandocTemplateBodyCompilerTextSnapshot' is the 'Snapshot' used internally
--- for partial templates in pandoc to work in the 'Compiler' monad.
-pandocTemplateBodyCompilerTextSnapshot :: Snapshot
-pandocTemplateBodyCompilerTextSnapshot = "pandocTemplateBodyCompilerTextSnapshot"
 
--- | 'pandocTemplateBodyCompiler' reads a template (without the metadata header
--- from Hakyll)
-pandocTemplateBodyCompiler :: Compiler (Item (Template Text))
-pandocTemplateBodyCompiler = do
-    item <-  getResourceBodyText >>= Hakyll.saveSnapshot pandocTemplateBodyCompilerTextSnapshot
-    file <- Hakyll.getResourceFilePath
-    Hakyll.cached "pandocTemplateBodyCompiler-template" $ Hakyll.withItemBody (go file) item 
-  where
-    go :: FilePath -> Text -> Compiler (Template Text)
-    go fp item = Templates.compileTemplate fp item >>= \case
-        Left err -> fail $ "error 'pandocTemplateBodyCompiler' could not compile template: " ++ err
-        Right tp -> return tp
+-- | @'readLaTeXAndWriteHtml5String' readerOpts writerOpts filePath@ reads the
+-- LaTeX file @filePath@; and converts it into the corresponding HTML5 string
+-- via pandoc using the given @readerOpts@ and @writerOpts@ and returns the
+-- internal 'Pandoc' representation.
+--
+-- N.B. this automatically calls 'need' on the given 'FilePath'
+readLaTeXAndWriteHtml5String :: ReaderOptions -> WriterOptions -> FilePath -> Action (Text, Pandoc)
+readLaTeXAndWriteHtml5String readerOpts writerOpts filePath = do
+    need [filePath]
+    liftIO $ Pandoc.runIOorExplode $ do
+        fileContents <- liftIO $ Pandoc.readFile filePath
+        pandoc <- Pandoc.readLaTeX readerOpts fileContents
+        htmlPost <- Pandoc.writeHtml5String writerOpts pandoc
+        return (htmlPost, pandoc)
 
--- | @'postCompilerWithPandocTemplate' template@ compiles a post with the provided
--- template. The template must be previously loaded via 'pandocTemplateBodyCompiler'
-postCompilerWithPandocTemplate :: 
-    -- | 'Template' to use
-    Template Text -> 
-    -- | resulting post
-    Compiler (Item String)
-postCompilerWithPandocTemplate template = Hakyll.getResourceBody >>= \item -> 
-    let mPandoc = 
-            let readerOpts :: ReaderOptions
-                readerOpts = Options.def
-                    { readerStandalone = True
-                    }
 
-                writerOpts :: WriterOptions
-                writerOpts = Options.def
-                    { writerHTMLMathMethod = MathJax Options.defaultMathJaxURL
-                    , writerHighlightStyle = Just Highlighting.haddock
-                    , writerTemplate = Just template
-                    , writerReferenceLinks = True
-                    , writerNumberSections = True 
-                    , writerTableOfContents = True 
-                    }
-            in Readers.readLaTeX readerOpts (Text.pack $ itemBody item) >>= 
-                \pandoc -> (pandoc,) <$> Writers.writeHtml5String writerOpts pandoc 
-    in case Pandoc.runPure mPandoc of
-        Left err -> fail $ "'postCompilerWithPandocTemplate' failed with: " ++ show err
-        Right (pandoc, res) -> do
-            traceShowM pandoc
-            Hakyll.saveSnapshot pandocSnapshot (Hakyll.itemSetBody pandoc item)
-            Hakyll.relativizeUrls $ Hakyll.itemSetBody (Text.unpack res) item 
-
-pandocSnapshot :: Snapshot
-pandocSnapshot = "pandoc"
-
--- * Main function
--- | Entry point of program
 main :: IO ()
-main = Hakyll.hakyllWith conf $ do
-    -- templates.
-    Hakyll.match "templates/*" $ do
-        Hakyll.compile pandocTemplateBodyCompiler
- 
-    -- posts.
-    Hakyll.match "posts/**/*.tex" $ do
-        Hakyll.route $ Hakyll.setExtension "html"
-        Hakyll.compile $ Hakyll.loadBody "templates/post.html" 
-            >>= \template -> postCompilerWithPandocTemplate template
+main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do 
+    phony "clean" $ removeFilesAfter "docs" ["//*"]
 
-    -- index.html
-    Hakyll.create ["index.html"] $ do
-        Hakyll.route $ Hakyll.constRoute "index.html"
-        Hakyll.compile $ Hakyll.makeItem ("wahoo"  :: String)
-    {-
-    Hakyll.create ["archive.html"] $ do
-        Hakyll.route Hakyll.idRoute
-    -}
+    -- The homepage
+    want ["docs/index.html"]
 
--- * Orphan instances
-instance Binary a => Binary (Template a) where
-instance Binary a => Binary (Doc a) where
-instance Binary Variable where
-instance Binary Pipe where
-instance Binary Text.DocTemplates.Internal.Alignment where
-instance Binary Border where
+    -- Ensures that '.nojekyll' exists (as needed by Github)
+    let noJekyll = "docs/.nojekyll"
+    action $ doesFileExist noJekyll >>= \b -> 
+        unless b $ command_  [] "touch" [noJekyll]
 
-instance Writable (Template a) where
-    -- writing a template is impossible
-    write _ _ = return ()
-instance Writable Text where
-    write fp = UTF8.writeFile fp . itemBody
-instance TemplateMonad Compiler where
-    getPartial = fmap itemBody . flip Hakyll.loadSnapshot pandocTemplateBodyCompilerTextSnapshot . Hakyll.fromFilePath 
+    -- Building the @docs/index.html@
+    "docs/index.html" %> \indexHtmlPath -> do
+        texPosts <- getDirectoryFiles "posts" ["*//*.tex"]
+        let htmlPostPaths = ["docs" </> "posts" </> texPost -<.> "html" | texPost <- texPosts]
+            pandocPostPaths = ["docs" </> "posts" </> texPost -<.> "json" | texPost <- texPosts]
 
-instance Binary Pandoc where
-instance Binary Meta where
-instance Binary Block where
-instance Binary MetaValue where
-instance Binary Inline where
-instance Binary QuoteType where
-instance Binary Format where
-instance Binary Citation where
-instance Binary ListNumberStyle where
-instance Binary CitationMode where
-instance Binary MathType where
-instance Binary ListNumberDelim where
-instance Binary Caption where
-instance Binary Text.Pandoc.Definition.Alignment where
-instance Binary ColWidth where
-instance Binary TableHead where
-instance Binary Row where
-instance Binary TableBody where
-instance Binary RowHeadColumns where 
-instance Binary TableFoot where 
-instance Binary Cell where
-instance Binary RowSpan where
-instance Binary ColSpan where
+        need $ htmlPostPaths ++ pandocPostPaths 
+
+        let templatePath = "templates/index.html"
+
+        template <- compileTemplate templatePath
+
+        pandocPosts <- liftIO 
+            $ traverse 
+                (liftEither . Pandoc.mapLeft userError <=< Aeson.eitherDecodeFileStrict) 
+                pandocPostPaths 
+
+        -- TODO: we still need to add the date...
+        let indexTexPath = "posts" </> dropDirectory1 indexHtmlPath -<.> "tex"
+            readerOpts = defaultReaderOpts
+            writerOpts = defaultWriterOpts
+                { writerTemplate = Just template
+                , writerNumberSections = False
+                , writerVariables = 
+                    -- Add the variables for the archive. We need to include
+                    --
+                    --      1. the @title@
+                    --
+                    --      2. the @link@ i.e., the relative URL which contains
+                    --      the post.
+                    --
+                    --      2. the @date@ TODO it doesn't do this yet.
+                    flip (Pandoc.defField "archive") (writerVariables defaultWriterOpts) $ 
+                    map (first dropDirectory1) (zip htmlPostPaths pandocPosts) <&> 
+                        \(htmlPostPath, Pandoc meta _blocks) -> 
+                            Aeson.object 
+                            [ "title" Aeson..= 
+                                ( Aeson.toJSON $ fromMaybe  "Untitled" $ 
+                                    fmap Pandoc.stringify $ Pandoc.lookupMeta "title" meta
+                                )
+                            , "link" Aeson..= (Aeson.toJSON htmlPostPath :: Aeson.Value)
+                            ]
+                }
+
+        (indexHtml, _) <- readLaTeXAndWriteHtml5String readerOpts writerOpts indexTexPath
+
+        void $ liftIO $ Pandoc.writeFile indexHtmlPath indexHtml
+
+    -- Building the LaTeX to HTML page for *posts*, and saves the 'Pandoc'
+    -- intermediate representation
+    ["docs/posts/*/*.html", "docs/posts/*/*.json"] &%> \[htmlPostPath, jsonPostPath] -> do
+        let texPostPath = dropDirectory1 htmlPostPath -<.> "tex"
+            templatePath = "templates/post.html"
+
+        template <- compileTemplate templatePath
+
+        let readerOpts = defaultReaderOpts
+            writerOpts = defaultWriterOpts
+                { writerTemplate = Just template
+                }
+
+        (htmlPost, htmlPandoc) <- readLaTeXAndWriteHtml5String readerOpts writerOpts texPostPath
+
+        void $ liftIO $ Pandoc.writeFile htmlPostPath htmlPost
+        void $ liftIO $ Aeson.encodeFile jsonPostPath $ Aeson.toJSON htmlPandoc
+
+-- * Instances
+
+-- | 'TemplateAction' is a newtype wrapper around 'Action' to provide and
+-- instance for 'DocTemplates.TemplateMonad' which automatically will 'need' partial
+-- templates from pandocs.
+newtype TemplateAction a = TemplateAction { runTemplateAction :: Action a }
+  deriving (Functor, Applicative, Monad, MonadIO)
+
+-- | 'liftAction' lifts an 'Action' into a 'TemplateAction'
+liftAction :: Action a -> TemplateAction a
+liftAction = TemplateAction
+
+instance DocTemplates.TemplateMonad TemplateAction where
+    getPartial filePath = liftAction $ need [filePath] >> liftIO (Pandoc.readFile filePath)

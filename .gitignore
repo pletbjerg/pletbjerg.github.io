@@ -316,3 +316,9 @@ TSWLatexianTemp*
 ##################################
 project.hoo
 project.warn
+
+.shake
+docs/.shake
+docs/.shake.database
+docs/.shake.lock
+

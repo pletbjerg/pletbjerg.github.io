@@ -2,6 +2,7 @@
 \usepackage{amsmath,amssymb,amsfonts,amsthm}
 \usepackage{verbatim}
 \usepackage{listings}
+\usepackage{tikz-cd}
 
 \DeclareMathOperator{\fl}{fl}
 \newcommand{\bangle}[1]{\langle #1 \rangle}
@@ -32,24 +33,61 @@
 
 \tableofcontents
 
+\section{A Section}
+Hello world! This is a section
 
-\section{Hello World}
-Hello world! Testing some math $x = 3$... How about some more complicated math?
-\begin{align}
+\section{Testing Some Math}
+Recall the following definition.
+\begin{defn}
+    An \emph{$\infty$-category} is a simplicial set $S_\bullet$ such that
+    for every $ 0 < i < n$ and every natural transformation $\sigma_0 : \Lambda^n_i \to S_\bullet$, there exists a (not necessarily unique) map $\sigma : \Lambda^n \to S_\bullet$
+    such that
+    \[
+        \sigma_0 = \sigma \circ \iota
+    \]
+    where $\iota : \Lambda^n_i \to \Lambda^n$ is the canonical injection.
+\end{defn}
+
+Also, if $F$ is a functor, we have the following straightforward statement.
+\[
+\begin{aligned}
     F( g \circ f ) 
-        &=  F( g ) \circ F (f )
-        \\
-        &=  cool
-\end{align}
-And this is what verbatim outputs
+        &=  F( g ) \circ F (f ) \\
+        &=  F( g \circ f ) 
+\end{aligned}
+\]
+
+\section{Testing Listings}
+Consider the following Haskell function.
 \begin{lstlisting}[language=Haskell]
 map :: (a -> b) -> [a] -> [b]
 map _f [] = []
 map f (a:as) = f a : map f as
 \end{lstlisting}
 
-\section{Hello World}
-asdf 
-\section{Hello World}
+Or we can consider the following C function.
+\begin{lstlisting}[language=C]
+char* lex() {
+    int c; 
+
+    while ((c = getc()) != EOF && isspace(c)){;}
+
+    switch (c) {
+        case EOF:
+            return "EOF";
+        default:
+            if (isdigit(c)) {
+                do {
+                    c = getc();
+                } while (isdigit(c));
+                ungetc(c);
+                return "UINT";
+            } else {
+                return "ERR";
+            }
+
+    }
+}
+\end{lstlisting}
 
 \end{document}
