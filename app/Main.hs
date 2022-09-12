@@ -94,7 +94,17 @@ readLaTeXAndWriteHtml5String readerOpts writerOpts filePath = do
 
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do 
+    -- an alias to clean up the entire website
     phony "clean" $ removeFilesAfter "docs" ["//*"]
+
+    -- an alias to deploy (i.e,. push the docs)
+    phony "deploy" $ 
+        let deployCmds = unlines
+                [ "git add docs/*"
+                , "git commit -m 'Deployment'"
+                , "git push"
+                ]
+        in cmd_ deployCmds 
 
     -- The homepage
     want ["docs/index.html"]
