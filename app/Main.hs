@@ -123,7 +123,6 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                 (liftEither . Pandoc.mapLeft userError <=< Aeson.eitherDecodeFileStrict) 
                 pandocPostPaths 
 
-        -- TODO: we still need to add the date...
         let indexTexPath = "posts" </> dropDirectory1 indexHtmlPath -<.> "tex"
             readerOpts = defaultReaderOpts
             writerOpts = defaultWriterOpts
@@ -164,23 +163,22 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                             True 
                             Time.defaultTimeLocale 
                             "%B %_d, %_Y" 
-                             --  Some unfortunate type tricks to get @[Word8]@
-                             --  to @String@
+                             -- Some unfortunate type tricks to get the
+                             -- @[Word8]@ type to the @String@ type
                             $ map (toEnum . fromIntegral)
                             $ ByteString.unpack (Pandoc.fromText d)
-
                     _ -> Nothing
                 _ -> Nothing
 
 
-        (indexHtml, _) <- readLaTeXAndWriteHtml5String readerOpts writerOpts indexTexPath
+        (indexHtml, _pandocHtml) <- readLaTeXAndWriteHtml5String readerOpts writerOpts indexTexPath
 
         void $ liftIO $ Pandoc.writeFile indexHtmlPath indexHtml
 
     -- Building the LaTeX to HTML page for *posts*, and saves the 'Pandoc'
     -- intermediate representation. 
     --
-    -- Note we match on both the HTML and the pandoc JSON file.
+    -- Note we match on both the HTML *and* the pandoc JSON file.
     ["docs/posts/*/*.html", "docs/posts/*/*.json"] &%> \[htmlPostPath, jsonPostPath] -> do
         let texPostPath = dropDirectory1 htmlPostPath -<.> "tex"
             templatePath = "templates/post.html"
@@ -194,8 +192,9 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
 
         (htmlPost, htmlPandoc) <- readLaTeXAndWriteHtml5String readerOpts writerOpts texPostPath
 
-        void $ liftIO $ Pandoc.writeFile htmlPostPath htmlPost
-        void $ liftIO $ Aeson.encodeFile jsonPostPath $ Aeson.toJSON htmlPandoc
+        void $ liftIO $ do
+            Pandoc.writeFile htmlPostPath htmlPost
+            Aeson.encodeFile jsonPostPath $ Aeson.toJSON htmlPandoc
 
 -- * Instances
 
