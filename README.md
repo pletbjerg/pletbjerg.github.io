@@ -1,5 +1,5 @@
 # pletbjerg.github.io
-A repository for [pletbjerg.github.io](pletbjerg.github.io).
+A repository for [pletbjerg.github.io](https://pletbjerg.github.io/index.html).
 
 # Development
 All commands assume that you are in 

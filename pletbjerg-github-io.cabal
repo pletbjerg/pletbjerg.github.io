@@ -42,6 +42,7 @@ executable pletbjerg-github-io
         doclayout,
         mtl,
         doctemplates,
+        time,
 
     hs-source-dirs:   app
     default-language: Haskell2010

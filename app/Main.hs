@@ -12,8 +12,11 @@ import Control.Monad
 import Control.Monad.Except
 import Data.Functor
 import Data.Maybe 
+import Data.List 
+import Data.Ord 
 
 import Data.Text (Text)
+import qualified Data.Text as Text
 
 import Text.Pandoc (Pandoc (..), MetaValue (..), ReaderOptions (..), WriterOptions (..), Template)
 import Text.Pandoc.Options ( HTMLMathMethod (MathJax))
@@ -31,7 +34,15 @@ import qualified Text.Pandoc.Writers.Shared as Pandoc
 import qualified Text.DocTemplates as DocTemplates
 import qualified Text.DocLayout as DocLayout
 
+import Data.Aeson (Value (..))
 import qualified Data.Aeson as Aeson
+import qualified Data.Aeson.KeyMap as Aeson
+
+import Data.ByteString (ByteString)
+import qualified Data.ByteString as ByteString
+
+import Data.Time (Day)
+import qualified Data.Time as Time
 
 import Debug.Trace
 
@@ -65,7 +76,6 @@ compileTemplate templatePath = runTemplateAction $ do
     templateContents <- liftIO $ Pandoc.runIOorExplode $ Pandoc.getTemplate templatePath 
     eitherTemplate <- Pandoc.compileTemplate templatePath templateContents 
     liftIO $ liftEither $ Pandoc.mapLeft userError eitherTemplate
-
 
 -- | @'readLaTeXAndWriteHtml5String' readerOpts writerOpts filePath@ reads the
 -- LaTeX file @filePath@; and converts it into the corresponding HTML5 string
@@ -129,17 +139,40 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                     --      the post.
                     --
                     --      3. the @date@ TODO it doesn't do this yet.
-                    flip (Pandoc.defField "archive") (writerVariables defaultWriterOpts) $ 
-                    map (first dropDirectory1) (zip htmlPostPaths pandocPosts) <&> 
+                    flip (Pandoc.defField "archive") (writerVariables defaultWriterOpts) 
+                    $ sortOn (Down . onDate)
+                    $ map (first dropDirectory1) (zip htmlPostPaths pandocPosts) <&> 
                         \(htmlPostPath, Pandoc meta _blocks) -> 
                             Aeson.object 
                             [ "title" Aeson..= 
                                 ( Aeson.toJSON $ fromMaybe  "Untitled" $ 
                                     fmap Pandoc.stringify $ Pandoc.lookupMeta "title" meta
                                 )
+                            , "date" Aeson..= 
+                                ( Aeson.toJSON $ fromMaybe  "undated" $ 
+                                    fmap Pandoc.stringify $ Pandoc.lookupMeta "date" meta
+                                )
                             , "link" Aeson..= (Aeson.toJSON htmlPostPath :: Aeson.Value)
                             ]
                 }
+
+            -- To sort lexicographically by @undated < year < month < day@
+            onDate :: Value -> Maybe Day
+            onDate = \case 
+                Object keyMap -> Aeson.lookup "date" keyMap >>= \case
+                    String d -> 
+                        Time.parseTimeM 
+                            True 
+                            Time.defaultTimeLocale 
+                            "%B %_d, %_Y" 
+                             --  Some unfortunate type tricks to get @[Word8]@
+                             --  to @String@
+                            $ map (toEnum . fromIntegral)
+                            $ ByteString.unpack (Pandoc.fromText d)
+
+                    _ -> Nothing
+                _ -> Nothing
+
 
         (indexHtml, _) <- readLaTeXAndWriteHtml5String readerOpts writerOpts indexTexPath
 
