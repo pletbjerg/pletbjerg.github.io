@@ -14,6 +14,7 @@ import Data.Functor
 import Data.Maybe 
 import Data.List 
 import Data.Ord 
+import Data.Foldable 
 
 import Data.Text (Text)
 import qualified Data.Text as Text
@@ -99,12 +100,13 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
 
     -- an alias to deploy (i.e,. push the docs)
     phony "deploy" $ 
-        let deployCmds = unlines
+        let deployCmds :: [String]
+            deployCmds =
                 [ "git add docs/*"
                 , "git commit -m 'Deployment'"
                 , "git push"
                 ]
-        in cmd_ deployCmds 
+        in traverse_ cmd_ deployCmds
 
     -- The homepage
     want ["docs/index.html"]
