@@ -92,7 +92,6 @@ readLaTeXAndWriteHtml5String readerOpts writerOpts filePath = do
         htmlPost <- Pandoc.writeHtml5String writerOpts pandoc
         return (htmlPost, pandoc)
 
-
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do 
     phony "clean" $ removeFilesAfter "docs" ["//*"]
