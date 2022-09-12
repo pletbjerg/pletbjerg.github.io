@@ -148,7 +148,7 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                     --      2. the @link@ i.e., the relative URL which contains
                     --      the post.
                     --
-                    --      3. the @date@ TODO it doesn't do this yet.
+                    --      3. the @date@
                     flip (Pandoc.defField "archive") (writerVariables defaultWriterOpts) 
                     $ sortOn (Down . onDate)
                     $ map (first dropDirectory1) (zip htmlPostPaths pandocPosts) <&> 
