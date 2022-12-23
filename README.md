@@ -6,6 +6,7 @@ All commands assume that you are in
 ```
 nix develop
 ```
+shell
 ## Building the website.
 Execute the following command.
 ```
