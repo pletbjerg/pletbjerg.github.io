@@ -81,89 +81,6 @@ import qualified Data.Aeson.KeyMap as Aeson
 import Data.Time (Day)
 import qualified Data.Time as Time
 
--- * Pandoc reader / writer wrappers
-
--- | 'defaultReaderOpts' are the default reader options for pandocs.
-defaultReaderOpts :: ReaderOptions
-defaultReaderOpts = Pandoc.def
-    { readerStandalone = True
-    }
-
--- | 'defaultWriterOpts' are the default writer options for pandocs
-defaultWriterOpts :: WriterOptions
-defaultWriterOpts = Pandoc.def
-    { writerHTMLMathMethod = MathJax Pandoc.defaultMathJaxURL
-    , writerHighlightStyle = Just Pandoc.pygments
-    , writerReferenceLinks = True
-    , writerNumberSections = True 
-    -- Eh, we don't really need this I suppose.
-    -- , writerTableOfContents = True 
-    }
-
--- | 'compileTemplate' compiles the given template. N.B. you do not need to
--- 'need' the 'FilePath' given, and you do not need to 'need' any required
--- partial templates.
-compileTemplate :: 
-    -- | File path of the 'Template' to compile.
-    FilePath -> 
-    -- | Compiled 'Template'
-    Action (Template Text)
-compileTemplate templatePath = runTemplateAction $ do
-    liftActionToTemplateAction $ need [templatePath]
-    templateContents <- liftIO $ Pandoc.runIOorExplode $ Pandoc.getTemplate templatePath 
-    eitherTemplate <- Pandoc.compileTemplate templatePath templateContents 
-    liftIO $ liftEither $ Pandoc.mapLeft userError eitherTemplate
-
--- | @'readLaTeXWithBib' readerOpts filePath bibsFilePaths@ reads the LaTeX
--- file @filePath@ alongside with all provided
--- bibliography files @bibsFilePaths@; and converts it into the corresponding
--- internal 'Pandoc' representation.
---
--- N.B. this automatically calls 'need' on all the given 'FilePath'
-readLaTeXWithBib :: 
-    -- | pandoc reader options
-    ReaderOptions -> 
-    -- | filepath to LaTeX file to compile
-    FilePath -> 
-    -- | list of *.bib files
-    [FilePath] -> 
-    Action Pandoc
-readLaTeXWithBib readerOpts filePath bibsFilePaths = do
-    need $ [filePath] ++ bibsFilePaths
-    let texDir = dropFileName filePath
-        -- reading the source code, @TEXINPUTS@ is the environment variable of
-        -- colon (":") seperated direectories that pandocs goes looking for when
-        -- searching for @\input{<file>}@, etc from a LaTeX file.
-        -- So, we add the current directory of the thing we wish to compile
-        -- there.
-        magicTEXINPUTSEnvVar = "TEXINPUTS"
-        newEnvironment = [(magicTEXINPUTSEnvVar, Text.pack texDir)]
-    environment <- fmap (map (Text.pack *** Text.pack)) $ liftIO getEnvironment 
-    -- TODO: perhaps instead of overriding the @TEXINPUTS@ environment variable
-    -- (internally, this uses 'lookup' which finds the _first_ key value pair),
-    -- we should really augment the current environment if it exists.
-    runPandocShakeWithEnvOrExplode (newEnvironment ++ environment) $ do
-        -- Include the directory of @filePath@ in the resource lookup path
-        Pandoc.modifyCommonState $ \commonState -> 
-            commonState { stResourcePath = stResourcePath commonState ++ [texDir]}
-
-        -- compile the LaTeX document to Pandoc
-        fileContents <- liftIO $ Pandoc.readFile filePath
-        pandoc <- Pandoc.readLaTeX readerOpts fileContents
-
-        -- compile the bib to Pandoc (note this only contains the bibilography
-        -- metadata
-        bib <- fmap fold $ for bibsFilePaths $ \bibFilePath -> do
-            bibFileContents <- liftIO $ Pandoc.readFile bibFilePath
-            Pandoc.readBibTeX readerOpts bibFileContents
-
-        -- add the biblographies metadata to the @pandoc@, and ensure that we
-        -- have the citations printed out in the body with the CiteProcfilter
-        let pandoc' = pandoc <> bib :: Pandoc
-        pandoc'' <- Pandoc.processCitations pandoc'
-
-        return pandoc''
-
 -- * Main
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do 
@@ -302,6 +219,90 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
 
         void $ liftIO $ Pandoc.writeFile htmlPostPath htmlPost
 
+
+-- * Pandoc reader / writer wrappers
+
+-- | 'defaultReaderOpts' are the default reader options for pandocs.
+defaultReaderOpts :: ReaderOptions
+defaultReaderOpts = Pandoc.def
+    { readerStandalone = True
+    }
+
+-- | 'defaultWriterOpts' are the default writer options for pandocs
+defaultWriterOpts :: WriterOptions
+defaultWriterOpts = Pandoc.def
+    { writerHTMLMathMethod = MathJax Pandoc.defaultMathJaxURL
+    , writerHighlightStyle = Just Pandoc.pygments
+    , writerReferenceLinks = True
+    , writerNumberSections = True 
+    -- Eh, we don't really need this I suppose.
+    -- , writerTableOfContents = True 
+    }
+
+-- | 'compileTemplate' compiles the given template. N.B. you do not need to
+-- 'need' the 'FilePath' given, and you do not need to 'need' any required
+-- partial templates.
+compileTemplate :: 
+    -- | File path of the 'Template' to compile.
+    FilePath -> 
+    -- | Compiled 'Template'
+    Action (Template Text)
+compileTemplate templatePath = runTemplateAction $ do
+    liftActionToTemplateAction $ need [templatePath]
+    templateContents <- liftIO $ Pandoc.runIOorExplode $ Pandoc.getTemplate templatePath 
+    eitherTemplate <- Pandoc.compileTemplate templatePath templateContents 
+    liftIO $ liftEither $ Pandoc.mapLeft userError eitherTemplate
+
+-- | @'readLaTeXWithBib' readerOpts filePath bibsFilePaths@ reads the LaTeX
+-- file @filePath@ alongside with all provided
+-- bibliography files @bibsFilePaths@; and converts it into the corresponding
+-- internal 'Pandoc' representation.
+--
+-- N.B. this automatically calls 'need' on all the given 'FilePath's
+readLaTeXWithBib :: 
+    -- | pandoc reader options
+    ReaderOptions -> 
+    -- | filepath to LaTeX file to compile
+    FilePath -> 
+    -- | list of *.bib files
+    [FilePath] -> 
+    Action Pandoc
+readLaTeXWithBib readerOpts filePath bibsFilePaths = do
+    need $ [filePath] ++ bibsFilePaths
+    let texDir = dropFileName filePath
+        -- reading the source code, @TEXINPUTS@ is the environment variable of
+        -- colon (":") seperated direectories that pandocs goes looking for when
+        -- searching for @\input{<file>}@, etc from a LaTeX file.
+        -- So, we add the current directory of the thing we wish to compile
+        -- there.
+        magicTEXINPUTSEnvVar = "TEXINPUTS"
+        newEnvironment = [(magicTEXINPUTSEnvVar, Text.pack texDir)]
+    environment <- fmap (map (Text.pack *** Text.pack)) $ liftIO getEnvironment 
+    -- TODO: perhaps instead of overriding the @TEXINPUTS@ environment variable
+    -- (internally, this uses 'lookup' which finds the _first_ key value pair),
+    -- we should really augment the current environment if it exists.
+    runPandocShakeWithEnvOrExplode (newEnvironment ++ environment) $ do
+        -- Include the directory of @filePath@ in the resource lookup path
+        Pandoc.modifyCommonState $ \commonState -> 
+            commonState { stResourcePath = stResourcePath commonState ++ [texDir]}
+
+        -- compile the LaTeX document to Pandoc
+        fileContents <- liftIO $ Pandoc.readFile filePath
+        pandoc <- Pandoc.readLaTeX readerOpts fileContents
+
+        -- compile the bib to Pandoc (note this only contains the bibilography
+        -- metadata
+        bib <- fmap fold $ for bibsFilePaths $ \bibFilePath -> do
+            bibFileContents <- liftIO $ Pandoc.readFile bibFilePath
+            Pandoc.readBibTeX readerOpts bibFileContents
+
+        -- add the biblographies metadata to the @pandoc@, and ensure that we
+        -- have the citations printed out in the body with the CiteProcfilter
+        let pandoc' = pandoc <> bib :: Pandoc
+        pandoc'' <- Pandoc.processCitations pandoc'
+
+        return pandoc''
+
 -- * Instances
 
 -- | 'PandocShake' is essentially 'PandocIO' with the following differences
@@ -311,6 +312,8 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
 --
 --      - 'lookupEnv' lookups environment variables in the provided environment
 --      instead of consulting the process's environment variable. This is because 
+--      if processes need to modify the environment (and shake chooses to run
+--      the dependencies concurrently), this could do "the wrong thing".
 newtype PandocShake a = PandocShake 
     { unPandocShake :: 
         ExceptT PandocError (ReaderT [(Text,Text)] (StateT CommonState Action)) a
