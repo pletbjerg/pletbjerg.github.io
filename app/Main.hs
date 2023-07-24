@@ -15,6 +15,7 @@ import Data.Ord
 import Data.Foldable 
 import Data.Traversable 
 import System.Environment
+import Control.Exception
 import Debug.Trace
 
 -- shake
@@ -80,6 +81,7 @@ import qualified Data.Aeson.KeyMap as Aeson
 import Data.Time (Day)
 import qualified Data.Time as Time
 
+-- * Pandoc reader / writer wrappers
 
 -- | 'defaultReaderOpts' are the default reader options for pandocs.
 defaultReaderOpts :: ReaderOptions
@@ -112,25 +114,21 @@ compileTemplate templatePath = runTemplateAction $ do
     eitherTemplate <- Pandoc.compileTemplate templatePath templateContents 
     liftIO $ liftEither $ Pandoc.mapLeft userError eitherTemplate
 
--- | @'readLaTeXAndWriteHtml5String' readerOpts writerOpts filePath@ reads the
--- LaTeX file @filePath@; and converts it into the corresponding HTML5 string
--- via pandoc using the given @readerOpts@ and @writerOpts@ and returns the
+-- | @'readLaTeXWithBib' readerOpts filePath bibsFilePaths@ reads the LaTeX
+-- file @filePath@ alongside with all provided
+-- bibliography files @bibsFilePaths@; and converts it into the corresponding
 -- internal 'Pandoc' representation.
 --
--- N.B. this automatically calls 'need' on the given 'FilePath'
-readLaTeXAndWriteHtml5String :: ReaderOptions -> WriterOptions -> FilePath -> Action (Text, Pandoc)
-readLaTeXAndWriteHtml5String readerOpts writerOpts filePath = 
-    readLaTeXWithBibAndWriteHtml5String readerOpts writerOpts filePath []
-
--- | @'readLaTeXWithBibAndWriteHtml5String' readerOpts writerOpts filePath
--- bibsFilePaths@ reads the LaTeX file @filePath@ alongside with all provided
--- bibliography files @bibsFilePaths@; and converts it into the corresponding
--- HTML5 string via pandoc using the given @readerOpts@ and @writerOpts@ and
--- returns the internal 'Pandoc' representation.
---
 -- N.B. this automatically calls 'need' on all the given 'FilePath'
-readLaTeXWithBibAndWriteHtml5String :: ReaderOptions -> WriterOptions -> FilePath -> [FilePath] -> Action (Text, Pandoc)
-readLaTeXWithBibAndWriteHtml5String readerOpts writerOpts filePath bibsFilePaths = do
+readLaTeXWithBib :: 
+    -- | pandoc reader options
+    ReaderOptions -> 
+    -- | filepath to LaTeX file to compile
+    FilePath -> 
+    -- | list of *.bib files
+    [FilePath] -> 
+    Action Pandoc
+readLaTeXWithBib readerOpts filePath bibsFilePaths = do
     need $ [filePath] ++ bibsFilePaths
     let texDir = dropFileName filePath
         -- reading the source code, @TEXINPUTS@ is the environment variable of
@@ -164,11 +162,9 @@ readLaTeXWithBibAndWriteHtml5String readerOpts writerOpts filePath bibsFilePaths
         let pandoc' = pandoc <> bib :: Pandoc
         pandoc'' <- Pandoc.processCitations pandoc'
 
-        -- create the HTML post
-        htmlPost <- Pandoc.writeHtml5String writerOpts pandoc''
+        return pandoc''
 
-        return (htmlPost, pandoc'')
-
+-- * Main
 main :: IO ()
 main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do 
     -- an alias to clean up the entire website
@@ -198,9 +194,8 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
         let htmlPostPaths = ["docs" </> "posts" </> texPost -<.> "html" | texPost <- texPosts]
             pandocPostPaths = ["docs" </> "posts" </> texPost -<.> "json" | texPost <- texPosts]
 
-        -- Assert that we need to both the HTML posts and the pandoc JSON
-        -- representations.
-        need $ htmlPostPaths ++ pandocPostPaths 
+        -- Assert that we need the HTML posts
+        need $ htmlPostPaths
 
         let templatePath = "templates/index.html"
 
@@ -258,39 +253,54 @@ main = shakeArgs shakeOptions{shakeFiles = "docs"} $ do
                     _ -> Nothing
                 _ -> Nothing
 
+        -- create the pandoc representation
+        pandocHtml <- readLaTeXWithBib readerOpts indexTexPath []
 
-        (indexHtml, _pandocHtml) <- readLaTeXAndWriteHtml5String readerOpts writerOpts indexTexPath
+        -- write out the tex page
+        indexHtml <- liftIO $ Pandoc.runIOorExplode $ Pandoc.writeHtml5String writerOpts pandocHtml
 
         void $ liftIO $ Pandoc.writeFile indexHtmlPath indexHtml
 
-    -- Building the LaTeX to HTML page for *posts*, and saves the 'Pandoc'
-    -- intermediate representation. 
-    --
-    -- Note we match on both the HTML *and* the pandoc JSON file.
-    --
-    -- TODO: break up the html and json rule into seperate rules, then we can
-    -- add pdfs in as well
-    ["docs/posts/*/*.html", "docs/posts/*/*.json"] &%> \[htmlPostPath, jsonPostPath] -> do
-        let texPostPath = dropDirectory1 htmlPostPath -<.> "tex"
-            templatePath = "templates/post.html"
+    -- Building the intermediate 'Pandoc' representation from LaTeX files.
+    -- Note: this also grabs all the bibliography files in the _same_
+    -- directory to include as metadata in the Pandoc type.
+    "docs/posts/*/*.json" %> \jsonPostPath -> do
+        let texPostPath = dropDirectory1 jsonPostPath -<.> "tex"
 
-        -- Grab the bib files in the same directory as the tex file we are
+        -- grab the bib files in the same directory as the tex file we are
         -- compiling.
         bibsFilePaths <- getDirectoryFiles ""  [dropFileName texPostPath </> "*.bib"]
 
+        -- read the LaTeX file
+        let readerOpts = defaultReaderOpts
+        pandoc <- readLaTeXWithBib readerOpts texPostPath bibsFilePaths
+
+        -- write the file out
+        liftIO $ void $ Aeson.encodeFile jsonPostPath $ Aeson.toJSON pandoc
+
+    -- Building the HTML page for *posts* from the intermediate 'Pandoc'
+    -- representation. 
+    "docs/posts/*/*.html" %> \htmlPostPath -> do
+        let 
+            jsonPostPath = htmlPostPath -<.> "json"
+            templatePath = "templates/post.html"
+
+        -- ensure we have the json intermediate representation
+        need [jsonPostPath]
+        pandoc <- liftIO $ Aeson.eitherDecodeFileStrict' jsonPostPath >>= \eitherJson -> case eitherJson of
+            Left err -> throwIO $ userError err
+            Right pandoc -> return (pandoc :: Pandoc)
+
+        -- grab the template
         template <- compileTemplate templatePath
 
-        let readerOpts = defaultReaderOpts
-            writerOpts = defaultWriterOpts
+        -- create the HTML from the pandoc string
+        let writerOpts = defaultWriterOpts
                 { writerTemplate = Just template
                 }
+        htmlPost <- liftIO $ Pandoc.runIOorExplode $ Pandoc.writeHtml5String writerOpts pandoc
 
-        (htmlPost, htmlPandoc) <- readLaTeXWithBibAndWriteHtml5String
-            readerOpts writerOpts texPostPath bibsFilePaths
-
-        void $ liftIO $ do
-            Pandoc.writeFile htmlPostPath htmlPost
-            Aeson.encodeFile jsonPostPath $ Aeson.toJSON htmlPandoc
+        void $ liftIO $ Pandoc.writeFile htmlPostPath htmlPost
 
 -- * Instances
 
