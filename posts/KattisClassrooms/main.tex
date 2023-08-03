@@ -1,0 +1,484 @@
+\documentclass{article}
+\usepackage{amsmath,amssymb,amsfonts,amsthm}
+\usepackage{verbatim}
+\usepackage{listings}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+\usepackage{tikz-cd}
+\usepackage{hyperref}
+
+\DeclareMathOperator{\fl}{fl}
+\newcommand{\bangle}[1]{\langle #1 \rangle}
+\newcommand{\bcurly}[1]{\{ #1 \}}
+\newcommand{\TODO}[1]{\textbf{TODO : #1}}
+
+\theoremstyle{plain}% default
+\newtheorem{thm}{Theorem}[section]
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem*{cor}{Corollary}
+\newtheorem*{KL}{Klein’s Lemma}
+\theoremstyle{definition}
+\newtheorem{defn}{Definition}[section]
+
+\newtheorem{exmp}{Example}[section]
+\newtheorem{xca}[exmp]{Exercise}
+\theoremstyle{remark}
+\newtheorem*{rem}{Remark}
+\newtheorem*{note}{Note}
+\newtheorem{case}{Case}
+
+\title{Competitive Programming in Haskell: Classrooms}
+\author{Christian Pletbjerg}
+\date{July 25, 2023}
+
+\begin{document}
+\maketitle
+
+\tableofcontents
+
+\section{Introduction}
+Let's say the (dreaded) club day at your school is approaching, and you've been
+    (unfortunately) tasked with assigning clubs' activities at specified start
+    times and finish times to a limited number of classrooms.
+Clubs despise sharing so if a club is given a classroom, the club must have the
+    classroom completely to themselves from its activity's start time to finish
+    time (inclusive).
+As there are only a limited number of classrooms, you'd like to maximize
+    the number of activities that can be scheduled.
+
+This problem is exactly the
+    \href{https://open.kattis.com/problems/classrooms}{Classrooms} problem on
+    Kattis which (at the time of writing this) has a difficulty of 6.9 (Hard)!
+The solution presented is a (somewhat) tricky greedy algorithm.
+There aren't very many Haskell solutions, so I figured I'd toss put one in
+    the mix.
+
+As an overview, we will:
+\begin{itemize}
+    \item Define notation.
+    \item Work through an example of the problem.
+    \item Design a greedy algorithm while proving its correctness.
+    \item Give an implementation in Haskell.
+\end{itemize}
+
+\section{Notation}
+We first fix notation for the rest of this document.
+
+Suppose we have a nonempty set of $n$ activities $A = \{1,\dots,n\}$, 
+    and a nonempty set of $m$ classrooms $C = \{1,\dots,m\}$.
+Each activity $i = 1,\dots, n$ has an associated integer \emph{start time} $s_i$, and
+    an associated integer \emph{finish time} $f_i$ satisfying $s_i \le f_i$ and $s_i \ge 1$ 
+    i.e., activities must start before they finish, and all activities start
+    at time $1$ or later.
+Often, we will associate an activity $i$ with the closed interval $[s_i,f_i]$
+    from its start time to finish time.
+Given two distinct activities $i,j$, we say that $i,j$ \emph{overlap} (or $i$
+    \emph{overlaps} with $j$) if $[s_i, f_i] \cap [s_j,f_j] \neq \emptyset$.
+
+A \emph{schedule $\mathcal{S}$} is a function
+\[
+    \mathcal{S} : A \to  C \cup \{ \bot \}
+\]
+which \emph{assigns} each activity to a classroom or $\bot$.
+Note that $\bot$ is not a classroom i.e., $\bot \not \in C$.
+If $\mathcal{S}$ assigns an activity $i$ to a classroom $c \in C$, then we say
+    that $i$ is \emph{scheduled}.
+A schedule $\mathcal{S}$ is \emph{valid} if
+    all activities in $\mathcal{S}$ that are assigned to the same classroom do not overlap  i.e.,
+        all distinct activities $i,j$ assigned to the same classroom $c \in C$ (i.e., $\mathcal{S}(i) = \mathcal{S}(j) = c$)
+            satisfy $[s_i,f_i] \cap [s_j,f_j] = \emptyset$.
+
+The \emph{size} of a schedule $\mathcal{S}$ is
+    the number of activities which are scheduled i.e., the size of $\mathcal{S}$ is 
+\begin{equation}
+    | \{ i \in A : \mathcal{S}(i) \in C \}|
+    .
+\end{equation}
+
+If schedule $\mathcal{O}$ is both valid and of maximum size
+    (w.r.t. valid schedules), then we say that 
+    $\mathcal{O}$ is \emph{optimal}. 
+Thus, in the notation given, our problem amounts to finding and optimal
+    schedule.
+
+\section{Example}
+Suppose we are given $n = 5$ activities defined as follows
+\begin{itemize}
+    \item $s_1 = 1, f_1 = 4$
+    \item $s_2 = 2, f_2 = 9$
+    \item $s_3 = 4, f_3 = 7$
+    \item $s_4 = 5, f_4 = 8$
+    \item $s_5 = 1, f_5 = 9$
+\end{itemize}
+Moreover, suppose we have $m = 2$ classrooms.
+
+One possible schedule $\mathcal{S}$ would be as follows.
+\begin{align}
+    1 &\mapsto 1    \\
+    2 &\mapsto 2    \\
+    3 &\mapsto \bot \\
+    4 &\mapsto 1    \\
+    5 &\mapsto \bot \\
+\end{align}
+
+We can visualize $\mathcal{S}$ as follows.
+\begin{verbatim}
+c1: |-----1-----|   |-----4-----|
+c2:     |-------------2-------------|
+    1   2   3   4   5   6   7   8   9
+\end{verbatim}
+\lstinline{c1} denotes classroom $1$, and \lstinline{c2} denotes classroom $2$.
+A vertical bar \lstinline{|} followed by dashes \lstinline{-}, a number $x$, more dashes
+    \lstinline{-}, then another vertical bar \lstinline{|}, denote activity $x$'s start and
+    finish time (via the vertical bar) where we note that bottom horizontal
+    numbers denote the time.
+
+It's easy to see that this is a valid schedule,
+    and this is in fact an optimal schedule of size $3$ for this instance of
+    the problem.
+
+Already, we see an interesting property of this problem.
+It's clear that an optimal schedule is not
+unique.
+With this example here, we instead could change $\mathcal{S}$ to assign $2 \mapsto \bot$ and $5 \mapsto 2$
+    which is also clearly a valid schedule and also of optimal size $3$.
+
+\section{An Algorithm}
+We propose a greedy algorithm to give us an assignment of
+    activities to classrooms of maximum size. 
+
+Suppose we are given $m > 0 $ classrooms, and $n > $ activities written as follows.
+\[
+    [s_1,f_1], \dots,[s_n,f_n]
+\]
+Without loss of generality, we may assume that the activities satisfy 
+    $f_i \le f_j$ for all $i \le j$ i.e., the activities are ordered by
+    earliest finish time first.
+
+
+We will inductively define a schedule $\mathcal{S}$.
+For every classroom $c$, we will maintain a variable $t_c$ which will 
+    maintain the invariant that $t_c$ is the largest finish time of activities
+    already assigned to classroom $c$ (or $0$ if no activities are assigned to classroom $c$).
+Then, we define $\mathcal{S}$ as follows.
+Set $t_c = 0$ for every classroom $c$.
+For each activity $i$ (processed from earliest finish time to latest finish time), 
+    let $c$ denote the classroom with a largest $t_c$ s.t.
+        $[0,t_{c}] \cap [s_i,f_i] = \emptyset$.
+Then, either:
+\begin{itemize}
+    \item If a classroom $c$ exists, then
+            assign activity $i$ to the classroom $c$, and update $t_c$ to
+            $f_i$ (this update is necessary to maintain the invariant the $t_c$
+            denotes the largest finish time of activities already assigned to
+            classroom $c$).
+    \item Otherwise, no such classroom $c$ exists, so assign activity $i$ to
+        $\bot$ i.e., activity $i$ will not be scheduled.
+\end{itemize}
+
+Obviously, we have the following properties of $\mathcal{S}$ by construction
+    which can be shown by induction.
+\begin{lem}
+    \label{Sinvariant}
+    When $\mathcal{S}$ assigns activity $\ell$ to classroom $c \in C$,
+        if activity $t$ is the largest activity s.t. $t < \ell$ and $\mathcal{S}(t) = c$
+            (i.e., $t$ is the activity assigned to classroom $c$ just before $\ell$),
+            then for any activity $t'$ assigned to classroom $c' \in C$ with 
+                $c \neq c'$ s.t. $t',\ell$ do not overlap, we have
+            \begin{equation}
+                f_{t'} \le f_{t}
+            \end{equation}
+    In other words, if $\ell$ is assigned to a classroom $c \in C$,
+        then the activity assigned to classroom $c$ just before $\ell$ has the
+        largest finish time of all already assigned activities that do not overlap with $\ell$.
+\end{lem}
+\begin{lem}
+    \label{Svalid}
+    $\mathcal{S}$ is valid schedule.
+\end{lem}
+
+We omit the proofs.
+
+Since $\mathcal{S}$ is a valid schedule, to show that $\mathcal{S}$
+    is an optimal schedule we just need to show that the size of $\mathcal{S}$
+    is as large as possible w.r.t. valid schedules.
+This is a bit tricky to show, so we'll first give an overview of the steps.
+We will:
+\begin{itemize}
+    \item Assume that we have an optimal schedule $\mathcal{O}$.
+    \item Show that we can incrementally transform $\mathcal{O}$ into a new
+        optimal schedule $\mathcal{O}'$ that is more similar to
+        $\mathcal{S}$.
+    \item Repeatedly apply the transformation from $\mathcal{O}$ to an optimal
+        schedule $\mathcal{O}'$ until we get the same schedule as $\mathcal{S}$
+        which shows that $\mathcal{S}$ is optimal as well (since each
+        application of the transformation is also optimal).
+\end{itemize}
+
+Suppose $\mathcal{O}$ is an optimal schedule. 
+Since schedules are functions from activities to classrooms (or $\bot$),
+    we may regard $\mathcal{O}$ as an assignment of the activities
+    ordered by earliest finish time first.
+Now, let $\ell$ denote the first activity scheduled such that $\mathcal{O}$ and
+    $\mathcal{S}$ differ. 
+Thus, for every activity $1 \le i < \ell$, we have that $\mathcal{O}(i) = \mathcal{S}(i)$.
+We will prove the following theorem whose importance we will see shortly.
+\begin{thm}
+    There exists a schedule $\mathcal{O}'$ which is: 
+    \begin{itemize}
+        \item optimal;
+        \item for every activity $j$ with $1 \le j \le \ell$, 
+                we have $\mathcal{S}(j) = \mathcal{O}'(j)$ i.e.,
+                    $\mathcal{O}'$ and $\mathcal{S}$ schedule activity $j$ the same
+                way.
+    \end{itemize}
+\end{thm}
+\begin{proof}
+    We will describe how to construct the schedule $\mathcal{O}'$.
+    Then, to argue that $\mathcal{O}'$ is optimal,
+        we will show that: $\mathcal{O}'$ does not assign an activity to a
+            classroom s.t. an activity will overlap with a distinct activity
+            already assigned to the same classroom; 
+            and $\mathcal{O}'$ is the same size as $\mathcal{O}$ which is
+            already known to be of maximum size w.r.t. valid schedules as we
+            assumed $\mathcal{O}$ is optimal.
+
+    For every activity $1 \le i < \ell$, 
+        put 
+        \begin{equation}
+            \mathcal{O}'(i) \mapsto \mathcal{O}(i) = \mathcal{S}(i) 
+        \end{equation}
+        i.e., assign each activity $i$ the same way $\mathcal{O}$ does (which
+        we may recall that by defn. of $\ell$, this is the same as $\mathcal{S}$).
+    Then, for activity $\ell$, put 
+        \begin{equation}
+            \mathcal{O}'(\ell) \mapsto \mathcal{S}(\ell)
+        \end{equation}
+        i.e., assign activity $\ell$ the same way $\mathcal{S}$ does.
+
+    For the remaining activities $k > \ell$, we must distinguish cases on how $\mathcal{S}$
+        and $\mathcal{O}$ assign activity $\ell$.
+    \begin{itemize}
+        \item If $\mathcal{S}(\ell) = \bot$ and $\mathcal{O}(\ell) = c \in C$,
+                then this means that $\mathcal{S}$ was unable to assign activity $\ell$ to a
+                classroom so the largest finish time of every activity assigned
+                to classroom thus far overlaps with activity $\ell$.
+                But, since $\mathcal{S}(i) = \mathcal{O}(i)$ for every activity $1 \le i < \ell$,
+                    this would mean that since $\mathcal{O}$ is optimal and hence a valid schedule,
+                    we get that there must exist a classroom which does not overlap with activity $\ell$
+                    -- contradicting that $\mathcal{S}$ was unable to assign activity $\ell$ to a classroom.
+                Hence, this case is impossible.
+
+        \item Suppose $\mathcal{S}(\ell) = c \in C$ and $\mathcal{O}(\ell) = \bot$.
+            Then, for every activity $k > \ell$, we put
+            \begin{equation}
+                \mathcal{O}'(k) \mapsto
+                    \begin{cases}
+                        \bot & \text{if $\ell, k$ overlap and $\mathcal{O}(k) = c$} \\
+                        \mathcal{O}(k) & \text{otherwise} \\
+                    \end{cases}
+            \end{equation}
+
+            Observe that the only activities $\mathcal{O}$ and $\mathcal{O}'$
+                assign differently are:
+            \begin{itemize}
+                \item activity $\ell$ where we recall $\mathcal{O}'(\ell) = \mathcal{S}(\ell) =c$; and
+                \item any activity $k > \ell$ for which $\mathcal{O}(k) =c$ and
+                    $k,\ell$ overlap where we put $\mathcal{O}'(k) = \bot$.
+            \end{itemize}
+
+            Obviously, this definition makes $\mathcal{O}'$ a valid schedule
+                since $\mathcal{O}$ is a valid schedule, and any activity which
+                could overlap with another activity assigned to the same
+                classroom in $\mathcal{O}'$ must then be assigned to classroom
+                $c$ and overlap with activity $\ell$, but such an activity is
+                not scheduled in $\mathcal{O}'$.
+            Thus, $\mathcal{O}'$ is a valid schedule.
+
+            Now, to show that $\mathcal{O}'$ is optimal, all that remains is to
+                show that $\mathcal{O}'$ has the largest size w.r.t. valid schedules.
+            We show this by showing that $\mathcal{O}'$ has the same size as
+                $\mathcal{O}$.
+            Note that $\mathcal{O}'$ assigns $\ell$ to a classroom, but
+                $\mathcal{O}$ does not assign $\ell$ to a classroom.
+            So, to show that $\mathcal{O}'$ is optimal, since 
+                $\mathcal{O}'$ is essentially identical to $\mathcal{O}$,
+                it suffices to show that there is at most one activity $k' > \ell$
+                which satisfies $\ell,k'$ overlap, and $\mathcal{O}(k') = c$.
+            Suppose for the sake of contradiction that $k',k'' > \ell$ are distinct,
+                both overlaps with $\ell$, and $\mathcal{O}(k') = \mathcal{O}(k'') = c$.
+            Without loss of generality, we may assume that $k' < k''$.
+            Using that we assumed all activities are ordered by earliest finish time first, we know that
+            \begin{equation}
+                f_{\ell} \le f_{k'} \le f_{k''}
+            \end{equation}
+            So, using that we assumed that both $k',k''$ overlap with $\ell$, 
+                it's easy to see that
+                $ f_\ell \in [s_\ell, f_\ell] \cap [s_{k'}, f_{k'}]$
+                and
+                $f_\ell \in [s_\ell, f_\ell] \cap [s_{k''}, f_{k''}]$.
+            Thus, $f_\ell \in [s_{k'}, f_{k'}] \cap [s_{k''}, f_{k''}]$ follows i.e.,
+                $k',k''$ overlap and are assigned to the same classroom
+                $c$ in $\mathcal{O}$ -- contradicting that $\mathcal{O}$ is valid.
+
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            \item Suppose $\mathcal{S}(\ell) = c \in C$
+                and $\mathcal{O}(\ell) = c' \in C$ where we necessarily have $c
+                \neq c'$ since $\ell$ is the first activity for which
+                $\mathcal{S}$ and $\mathcal{O}$ differ.
+
+            Then, for every activity $k > i$, we put
+            \begin{equation}
+                \mathcal{O}'(k) \mapsto
+                    \begin{cases}
+                        c' & \text{if $\mathcal{O}(k) = c$} \\
+                        c & \text{if $\mathcal{O}(k) = c'$} \\
+                        \mathcal{O}(k) & \text{otherwise}
+                    \end{cases}
+            \end{equation}
+
+            Observe that the only activities $\mathcal{O}$ and $\mathcal{O}'$
+                assign differently are:
+            \begin{itemize}
+                \item activity $\ell$ where we recall $\mathcal{O}'(\ell) = \mathcal{S}(\ell) =c \neq c' = \mathcal{O}(\ell)$; and
+                \item any activity $k > \ell$ for which either 
+                    $\mathcal{O}(k) = c$ (so $\mathcal{O}'(k) = c'$)
+                    or $\mathcal{O}(k) =c'$ (so $\mathcal{O}'(k) = c$).
+            \end{itemize}
+
+            It's clear that $\mathcal{O}'$ has the same size as $\mathcal{O}$,
+                and hence has the largest size w.r.t. valid schedules.
+            So, to show that $\mathcal{O}'$ is optimal, we need to show that
+                $\mathcal{O}'$ is valid i.e., all activities assigned to the
+                same classrooms do not overlap.
+            Since $\mathcal{O}$ and $\mathcal{O}'$ are essentially identical,
+                we only need to show that the activities assigned to classrooms
+                $c$ (and $c'$ resp.)
+                do not overlap.
+
+            We first show that no activities assigned to classroom $c$
+                in $\mathcal{O}'$ overlap.
+            Note that $\ell$ since $\mathcal{O}'(\ell) = \mathcal{S} = c$,
+                by defn. of $\mathcal{S}$,
+                    we know that $\ell$ does not overlap with any activity 
+                    $1 \le i < \ell$ assigned to $c$ in $\mathcal{O}'$.
+            Recall that $\mathcal{O}(\ell) = c'$, so for any activity $k > \ell$ 
+                satisfying $\mathcal{O}'(k) = c$, we know that $\mathcal{O}(k) = c'$,
+                so since $\mathcal{O}$ is valid, this implies that no activity
+                $k$ can overlap with any activity previously assigned to $c$ in
+                $\mathcal{O}'$.
+
+            Now, we show that no activities assigned to classroom $c'$
+                in $\mathcal{O}'$ overlap.
+            Obviously, all activities $1 \le i < \ell$ assigned to classroom
+                $c'$ in $\mathcal{O}'$ do not overlap.
+
+            Let $t < \ell$ denote the largest activity satisfying 
+                $\mathcal{O}'(t) = c$,
+                and let $t' < \ell$ denote the largest activity satisfying
+                $\mathcal{O}'(t') = c'$.
+            Note that $\ell \ge \ell$ is the smallest activity satisfying
+                $\mathcal{O}'(\ell) = c$,
+                and let $\ell' > \ell$ be the smallest activity satisfying
+                $\mathcal{O}'(\ell') = c'$ (so $ \mathcal{O}(\ell') = c$).
+            If such activities do not exist, then the following results
+                are trivial.
+
+            We show that $t',\ell'$ do not overlap.
+            By defn. of $\mathcal{S}$, since $\mathcal{S}(\ell) = c$,
+                we get that
+            \begin{equation}
+                f_{t'} \le f_{t}
+            \end{equation}
+                since
+                    $t'$ and $\ell$ do not overlap (since $\mathcal{O}(t') = c'$, $\mathcal{O}(\ell) = c'$, and $\mathcal{O}$ is valid)
+                    and $\mathcal{S}$ assigned activity $\ell$ to the classroom 
+                    with the largest $f_t$ s.t. $\ell,t$ do not overlap.
+
+            Then, since we know $\mathcal{O}(t) = c$, $\mathcal{O}(\ell') = c$, and $\mathcal{O}$
+                is valid, we get that $t$ and $\ell'$ do not overlap,
+                    so since $f_{t'} \le f_{t}$, it certainly follows that
+                        $t'$ and $\ell'$ do not overlap as required.
+
+            Finally, for any $k > \ell' > \ell$ satisfying $\mathcal{O}'(k) = c'$,
+                we know that $\mathcal{O}(k) = c$, so since $\mathcal{O}$ is
+                valid, this implies that no activity $k$ can overlap with any
+                activity previously assigned to $c'$ in $\mathcal{O}'$.
+
+    \end{itemize} 
+    It's easy to see that this concludes all possible cases, so the proof is complete.
+
+    For completeness, we include full construction of $\mathcal{O}'$ omitting the impossible cases.
+    \begin{equation}
+        \mathcal{O}'(i) \mapsto
+            \begin{cases}
+                \mathcal{O}(i) = \mathcal{S}(i) & \text{if $1 \le i < \ell$} \\
+                \mathcal{S}(i) & \text{if $i = \ell$} \\
+                \begin{cases} 
+                    \begin{cases} 
+                        \bot & \text{if $\ell,i$ overlap and $\mathcal{O}(k) = c$} \\
+                        \mathcal{O}(i) & \text{otherwise} \\
+                    \end{cases} 
+                            & \text{if $\mathcal{S}(\ell) = c \in C$ and $\mathcal{O}(\ell) =\bot$} \\
+                    \begin{cases} 
+                        c' & \text{if $\mathcal{O}(i) = c$} \\
+                        c & \text{if $\mathcal{O}(i) = c'$} \\
+                        \mathcal{O}(i) & \text{otherwise} \\
+                    \end{cases} 
+                            & \text{if $\mathcal{S}(\ell) = c \in C$ and $\mathcal{O}(\ell) =c' \in C$} \\
+                \end{cases} 
+                    & \text{if $i > \ell$} \\
+            \end{cases}
+    \end{equation}
+\end{proof}
+Finally, we may apply this theorem at most $n$ times (since there are at most
+    $n$ activities in any schedule) to make $\mathcal{O}$ 
+    identical to $\mathcal{S}$ while still being optimal.
+This immediately proves correctness of our algorithm and is summed up with the
+    following theorem.
+\begin{thm}
+    $\mathcal{S}$ is an optimal solution.
+\end{thm}
+
+\section{An Implementation in Haskell}
+If we made it through that rather wordy proof, the implementation in
+    Haskell shouldn't be that tricky.
+We need to do two things:
+\begin{enumerate}
+    \item Sort the input activities by earliest finish time.
+    \item Maintain an efficient way find the classroom with the largest 
+        $t_c$ (i.e., the largest finish time of all already assigned
+        activities for each classroom) that does not overlap with the next activity's start time.
+\end{enumerate}
+We know that we can sort lists in time $O(n \log n)$. 
+Moreover, we can use an ordered
+    tree of size $m$ containing the variables $t_c$ (i.e., the largest finish
+    time of all already assigned activities for each classroom) to find the
+    largest $t_c$ which does not overlap with the activity currently being
+    processed in time $O(\log m)$.
+We must repeat this operation $n$ times, so this will time $O(n \log m)$.
+Altogether, this algorithm will take time $O(n \log n + n \log m)$.
+
+Note that in the Kattis question, 
+    it suffices to just return the size of the optimal solution and it is not
+    necessary to actually compute a schedule.
+Thus, when implementing the ordered tree containing the variables $t_c$, 
+    it is not necessary to do the extra book keeping of the associated
+    classroom for $t_c$, and we may instead just maintain a multiset of
+    variables $t_c$.
+
+Luckily, there are some libraries on the Kattis server which provides us with
+these mechanisms.
+In particular, \lstinline{Data.List.sortOn} can sort a list in $O(n \log n)$,
+    and we may use an \lstinline{Data.IntMap.Strict.IntMap} to implement a
+    multiset that can be used to query the largest $t_c$ which does not overlap
+    with the next activity's start time in $O(\log m)$ with the function
+    \lstinline{Data.IntMap.Strict.lookupLT}.
+
+Concretely, an implementation is as follows.
+\lstinputlisting[language=Haskell]{./Classrooms.hs}
+
+\end{document}
