@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="" xml:lang="">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+  <meta name="author" content="Christian Pletbjerg" />
+  <meta name="dcterms.date" content="2023-07-25" />
+  <title>Competitive Programming in Haskell: Classrooms</title>
+  <style>
+    html {
+      line-height: 1.5;
+      font-family: Georgia, serif;
+      font-size: 20px;
+      color: #1a1a1a;
+      background-color: #fdfdfd;
+    }
+    body {
+      margin: 0 auto;
+      max-width: 36em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+    }
+    @media (max-width: 600px) {
+      body {
+        font-size: 0.9em;
+        padding: 1em;
+      }
+      h1 {
+        font-size: 1.8em;
+      }
+    }
+    @media print {
+      body {
+        background-color: transparent;
+        color: black;
+        font-size: 12pt;
+      }
+      p, h2, h3 {
+        orphans: 3;
+        widows: 3;
+      }
+      h2, h3, h4 {
+        page-break-after: avoid;
+      }
+    }
+    p {
+      margin: 1em 0;
+    }
+    a {
+      color: #1a1a1a;
+    }
+    a:visited {
+      color: #1a1a1a;
+    }
+    img {
+      max-width: 100%;
+    }
+    h1, h2, h3, h4, h5, h6 {
+      margin-top: 1.4em;
+    }
+    h5, h6 {
+      font-size: 1em;
+      font-style: italic;
+    }
+    h6 {
+      font-weight: normal;
+    }
+    ol, ul {
+      padding-left: 1.7em;
+      margin-top: 1em;
+    }
+    li > ol, li > ul {
+      margin-top: 0;
+    }
+    blockquote {
+      margin: 1em 0 1em 1.7em;
+      padding-left: 1em;
+      border-left: 2px solid #e6e6e6;
+      color: #606060;
+    }
+    code {
+      font-family: Menlo, Monaco, 'Lucida Console', Consolas, monospace;
+      font-size: 85%;
+      margin: 0;
+    }
+    pre {
+      margin: 1em 0;
+      overflow: auto;
+    }
+    pre code {
+      padding: 0;
+      overflow: visible;
+      overflow-wrap: normal;
+    }
+    .sourceCode {
+     background-color: transparent;
+     overflow: visible;
+    }
+    hr {
+      background-color: #1a1a1a;
+      border: none;
+      height: 1px;
+      margin: 1em 0;
+    }
+    table {
+      margin: 1em 0;
+      border-collapse: collapse;
+      width: 100%;
+      overflow-x: auto;
+      display: block;
+      font-variant-numeric: lining-nums tabular-nums;
+    }
+    table caption {
+      margin-bottom: 0.75em;
+    }
+    tbody {
+      margin-top: 0.5em;
+      border-top: 1px solid #1a1a1a;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    th {
+      border-top: 1px solid #1a1a1a;
+      padding: 0.25em 0.5em 0.25em 0.5em;
+    }
+    td {
+      padding: 0.125em 0.5em 0.25em 0.5em;
+    }
+    header {
+      margin-bottom: 4em;
+      text-align: center;
+    }
+    #TOC li {
+      list-style: none;
+    }
+    #TOC ul {
+      padding-left: 1.3em;
+    }
+    #TOC > ul {
+      padding-left: 0;
+    }
+    #TOC a:not(:hover) {
+      text-decoration: none;
+    }
+    code{white-space: pre-wrap;}
+    span.smallcaps{font-variant: small-caps;}
+    span.underline{text-decoration: underline;}
+    div.column{display: inline-block; vertical-align: top; width: 50%;}
+    div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+    ul.task-list{list-style: none;}
+    pre > code.sourceCode { white-space: pre; position: relative; }
+    pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+    pre > code.sourceCode > span:empty { height: 1.2em; }
+    .sourceCode { overflow: visible; }
+    code.sourceCode > span { color: inherit; text-decoration: inherit; }
+    div.sourceCode { margin: 1em 0; }
+    pre.sourceCode { margin: 0; }
+    @media screen {
+    div.sourceCode { overflow: auto; }
+    }
+    @media print {
+    pre > code.sourceCode { white-space: pre-wrap; }
+    pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+    }
+    pre.numberSource code
+      { counter-reset: source-line 0; }
+    pre.numberSource code > span
+      { position: relative; left: -4em; counter-increment: source-line; }
+    pre.numberSource code > span > a:first-child::before
+      { content: counter(source-line);
+        position: relative; left: -1em; text-align: right; vertical-align: baseline;
+        border: none; display: inline-block;
+        -webkit-touch-callout: none; -webkit-user-select: none;
+        -khtml-user-select: none; -moz-user-select: none;
+        -ms-user-select: none; user-select: none;
+        padding: 0 4px; width: 4em;
+        color: #aaaaaa;
+      }
+    pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+    div.sourceCode
+      {   }
+    @media screen {
+    pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+    }
+    code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+    code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+    code span.at { color: #7d9029; } /* Attribute */
+    code span.bn { color: #40a070; } /* BaseN */
+    code span.bu { color: #008000; } /* BuiltIn */
+    code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+    code span.ch { color: #4070a0; } /* Char */
+    code span.cn { color: #880000; } /* Constant */
+    code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+    code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+    code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+    code span.dt { color: #902000; } /* DataType */
+    code span.dv { color: #40a070; } /* DecVal */
+    code span.er { color: #ff0000; font-weight: bold; } /* Error */
+    code span.ex { } /* Extension */
+    code span.fl { color: #40a070; } /* Float */
+    code span.fu { color: #06287e; } /* Function */
+    code span.im { color: #008000; font-weight: bold; } /* Import */
+    code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+    code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+    code span.op { color: #666666; } /* Operator */
+    code span.ot { color: #007020; } /* Other */
+    code span.pp { color: #bc7a00; } /* Preprocessor */
+    code span.sc { color: #4070a0; } /* SpecialChar */
+    code span.ss { color: #bb6688; } /* SpecialString */
+    code span.st { color: #4070a0; } /* String */
+    code span.va { color: #19177c; } /* Variable */
+    code span.vs { color: #4070a0; } /* VerbatimString */
+    code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+  </style>
+  <script
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js"
+  type="text/javascript"></script>
+  <!--[if lt IE 9]>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/html5shiv/3.7.3/html5shiv-printshiv.min.js"></script>
+  <![endif]-->
+</head>
+<body>
+<p> <a href="../../index.html">Index</a> </p> 
+<header id="title-block-header">
+<h1 class="title">Competitive Programming in Haskell: Classrooms</h1>
+<p class="author">Christian Pletbjerg</p>
+<p class="date">July 25, 2023</p>
+</header>
+<h1 data-number="1"><span class="header-section-number">1</span>
+Introduction</h1>
+<p>Let’s say the (dreaded) club day at your school is approaching, and
+you’ve been (unfortunately) tasked with assigning clubs’ activities at
+specified start times and finish times to a limited number of
+classrooms. Clubs despise sharing so if a club is given a classroom, the
+club must have the classroom completely to themselves from its
+activity’s start time to finish time (inclusive). As there are only a
+limited number of classrooms, you’d like to maximize the number of
+activities that can be scheduled.</p>
+<p>This problem is exactly the <a
+href="https://open.kattis.com/problems/classrooms">Classrooms</a>
+problem on Kattis which (at the time of writing this) has a difficulty
+of 6.9 (Hard)! The solution presented is a (somewhat) tricky greedy
+algorithm. There aren’t very many Haskell solutions, so I figured I’d
+toss put one in the mix.</p>
+<p>As an overview, we will:</p>
+<ul>
+<li><p>Define notation.</p></li>
+<li><p>Work through an example of the problem.</p></li>
+<li><p>Design a greedy algorithm while proving its correctness.</p></li>
+<li><p>Give an implementation in Haskell.</p></li>
+</ul>
+<h1 data-number="2"><span class="header-section-number">2</span>
+Notation</h1>
+<p>We first fix notation for the rest of this document.</p>
+<p>Suppose we have a nonempty set of <span
+class="math inline">\(n\)</span> activities <span
+class="math inline">\(A = \{1,\dots,n\}\)</span>, and a nonempty set of
+<span class="math inline">\(m\)</span> classrooms <span
+class="math inline">\(C = \{1,\dots,m\}\)</span>. Each activity <span
+class="math inline">\(i = 1,\dots, n\)</span> has an associated integer
+<em>start time</em> <span class="math inline">\(s_i\)</span>, and an
+associated integer <em>finish time</em> <span
+class="math inline">\(f_i\)</span> satisfying <span
+class="math inline">\(s_i \le f_i\)</span> and <span
+class="math inline">\(s_i \ge 1\)</span> i.e., activities must start
+before they finish, and all activities start at time <span
+class="math inline">\(1\)</span> or later. Often, we will associate an
+activity <span class="math inline">\(i\)</span> with the closed interval
+<span class="math inline">\([s_i,f_i]\)</span> from its start time to
+finish time. Given two distinct activities <span
+class="math inline">\(i,j\)</span>, we say that <span
+class="math inline">\(i,j\)</span> <em>overlap</em> (or <span
+class="math inline">\(i\)</span> <em>overlaps</em> with <span
+class="math inline">\(j\)</span>) if <span class="math inline">\([s_i,
+f_i] \cap [s_j,f_j] \neq \emptyset\)</span>.</p>
+<p>A <em>schedule <span class="math inline">\(\mathcal{S}\)</span></em>
+is a function <span class="math display">\[\mathcal{S} : A \to  C \cup
+\{ \bot \}\]</span> which <em>assigns</em> each activity to a classroom
+or <span class="math inline">\(\bot\)</span>. Note that <span
+class="math inline">\(\bot\)</span> is not a classroom i.e., <span
+class="math inline">\(\bot \not \in C\)</span>. If <span
+class="math inline">\(\mathcal{S}\)</span> assigns an activity <span
+class="math inline">\(i\)</span> to a classroom <span
+class="math inline">\(c \in C\)</span>, then we say that <span
+class="math inline">\(i\)</span> is <em>scheduled</em>. A schedule <span
+class="math inline">\(\mathcal{S}\)</span> is <em>valid</em> if all
+activities in <span class="math inline">\(\mathcal{S}\)</span> that are
+assigned to the same classroom do not overlap i.e., all distinct
+activities <span class="math inline">\(i,j\)</span> assigned to the same
+classroom <span class="math inline">\(c \in C\)</span> (i.e., <span
+class="math inline">\(\mathcal{S}(i) = \mathcal{S}(j) = c\)</span>)
+satisfy <span class="math inline">\([s_i,f_i] \cap [s_j,f_j] =
+\emptyset\)</span>.</p>
+<p>The <em>size</em> of a schedule <span
+class="math inline">\(\mathcal{S}\)</span> is the number of activities
+which are scheduled i.e., the size of <span
+class="math inline">\(\mathcal{S}\)</span> is <span
+class="math display">\[| \{ i \in A : \mathcal{S}(i) \in C \}|
+    .\]</span></p>
+<p>If schedule <span class="math inline">\(\mathcal{O}\)</span> is both
+valid and of maximum size (w.r.t. valid schedules), then we say that
+<span class="math inline">\(\mathcal{O}\)</span> is <em>optimal</em>.
+Thus, in the notation given, our problem amounts to finding and optimal
+schedule.</p>
+<h1 data-number="3"><span class="header-section-number">3</span>
+Example</h1>
+<p>Suppose we are given <span class="math inline">\(n = 5\)</span>
+activities defined as follows</p>
+<ul>
+<li><p><span class="math inline">\(s_1 = 1, f_1 = 4\)</span></p></li>
+<li><p><span class="math inline">\(s_2 = 2, f_2 = 9\)</span></p></li>
+<li><p><span class="math inline">\(s_3 = 4, f_3 = 7\)</span></p></li>
+<li><p><span class="math inline">\(s_4 = 5, f_4 = 8\)</span></p></li>
+<li><p><span class="math inline">\(s_5 = 1, f_5 = 9\)</span></p></li>
+</ul>
+<p>Moreover, suppose we have <span class="math inline">\(m = 2\)</span>
+classrooms.</p>
+<p>One possible schedule <span
+class="math inline">\(\mathcal{S}\)</span> would be as follows. <span
+class="math display">\[\begin{aligned}
+    1 &amp;\mapsto 1    \\
+    2 &amp;\mapsto 2    \\
+    3 &amp;\mapsto \bot \\
+    4 &amp;\mapsto 1    \\
+    5 &amp;\mapsto \bot \\
+\end{aligned}\]</span></p>
+<p>We can visualize <span class="math inline">\(\mathcal{S}\)</span> as
+follows.</p>
+<pre><code>c1: |-----1-----|   |-----4-----|
+c2:     |-------------2-------------|
+    1   2   3   4   5   6   7   8   9</code></pre>
+<p><code>c1</code> denotes classroom <span
+class="math inline">\(1\)</span>, and <code>c2</code> denotes classroom
+<span class="math inline">\(2\)</span>. A vertical bar <code>|</code>
+followed by dashes <code>-</code>, a number <span
+class="math inline">\(x\)</span>, more dashes <code>-</code>, then
+another vertical bar <code>|</code>, denote activity <span
+class="math inline">\(x\)</span>’s start and finish time (via the
+vertical bar) where we note that bottom horizontal numbers denote the
+time.</p>
+<p>It’s easy to see that this is a valid schedule, and this is in fact
+an optimal schedule of size <span class="math inline">\(3\)</span> for
+this instance of the problem.</p>
+<p>Already, we see an interesting property of this problem. It’s clear
+that an optimal schedule is not unique. With this example here, we
+instead could change <span class="math inline">\(\mathcal{S}\)</span> to
+assign <span class="math inline">\(2 \mapsto \bot\)</span> and <span
+class="math inline">\(5 \mapsto 2\)</span> which is also clearly a valid
+schedule and also of optimal size <span
+class="math inline">\(3\)</span>.</p>
+<h1 data-number="4"><span class="header-section-number">4</span> An
+Algorithm</h1>
+<p>We propose a greedy algorithm to give us an assignment of activities
+to classrooms of maximum size.</p>
+<p>Suppose we are given <span class="math inline">\(m &gt; 0\)</span>
+classrooms, and <span class="math inline">\(n &gt;\)</span> activities
+written as follows. <span class="math display">\[[s_1,f_1],
+\dots,[s_n,f_n]\]</span> Without loss of generality, we may assume that
+the activities satisfy <span class="math inline">\(f_i \le f_j\)</span>
+for all <span class="math inline">\(i \le j\)</span> i.e., the
+activities are ordered by earliest finish time first.</p>
+<p>We will inductively define a schedule <span
+class="math inline">\(\mathcal{S}\)</span>. For every classroom <span
+class="math inline">\(c\)</span>, we will maintain a variable <span
+class="math inline">\(t_c\)</span> which will maintain the invariant
+that <span class="math inline">\(t_c\)</span> is the largest finish time
+of activities already assigned to classroom <span
+class="math inline">\(c\)</span> (or <span
+class="math inline">\(0\)</span> if no activities are assigned to
+classroom <span class="math inline">\(c\)</span>). Then, we define <span
+class="math inline">\(\mathcal{S}\)</span> as follows. Set <span
+class="math inline">\(t_c = 0\)</span> for every classroom <span
+class="math inline">\(c\)</span>. For each activity <span
+class="math inline">\(i\)</span> (processed from earliest finish time to
+latest finish time), let <span class="math inline">\(c\)</span> denote
+the classroom with a largest <span class="math inline">\(t_c\)</span>
+s.t. <span class="math inline">\([0,t_{c}] \cap [s_i,f_i] =
+\emptyset\)</span>. Then, either:</p>
+<ul>
+<li><p>If a classroom <span class="math inline">\(c\)</span> exists,
+then assign activity <span class="math inline">\(i\)</span> to the
+classroom <span class="math inline">\(c\)</span>, and update <span
+class="math inline">\(t_c\)</span> to <span
+class="math inline">\(f_i\)</span> (this update is necessary to maintain
+the invariant the <span class="math inline">\(t_c\)</span> denotes the
+largest finish time of activities already assigned to classroom <span
+class="math inline">\(c\)</span>).</p></li>
+<li><p>Otherwise, no such classroom <span
+class="math inline">\(c\)</span> exists, so assign activity <span
+class="math inline">\(i\)</span> to <span
+class="math inline">\(\bot\)</span> i.e., activity <span
+class="math inline">\(i\)</span> will not be scheduled.</p></li>
+</ul>
+<p>Obviously, we have the following properties of <span
+class="math inline">\(\mathcal{S}\)</span> by construction which can be
+shown by induction.</p>
+<div id="Sinvariant" class="lem">
+<p><strong>Lemma 1</strong>. <em>When <span
+class="math inline">\(\mathcal{S}\)</span> assigns activity <span
+class="math inline">\(\ell\)</span> to classroom <span
+class="math inline">\(c \in C\)</span>, if activity <span
+class="math inline">\(t\)</span> is the largest activity s.t. <span
+class="math inline">\(t &lt; \ell\)</span> and <span
+class="math inline">\(\mathcal{S}(t) = c\)</span> (i.e., <span
+class="math inline">\(t\)</span> is the activity assigned to classroom
+<span class="math inline">\(c\)</span> just before <span
+class="math inline">\(\ell\)</span>), then for any activity <span
+class="math inline">\(t&#39;\)</span> assigned to classroom <span
+class="math inline">\(c&#39; \in C\)</span> with <span
+class="math inline">\(c \neq c&#39;\)</span> s.t. <span
+class="math inline">\(t&#39;,\ell\)</span> do not overlap, we have <span
+class="math display">\[f_{t&#39;} \le f_{t}\]</span> In other words, if
+<span class="math inline">\(\ell\)</span> is assigned to a classroom
+<span class="math inline">\(c \in C\)</span>, then the activity assigned
+to classroom <span class="math inline">\(c\)</span> just before <span
+class="math inline">\(\ell\)</span> has the largest finish time of all
+already assigned activities that do not overlap with <span
+class="math inline">\(\ell\)</span>.</em></p>
+</div>
+<div id="Svalid" class="lem">
+<p><strong>Lemma 2</strong>. <em><span
+class="math inline">\(\mathcal{S}\)</span> is valid schedule.</em></p>
+</div>
+<p>We omit the proofs.</p>
+<p>Since <span class="math inline">\(\mathcal{S}\)</span> is a valid
+schedule, to show that <span class="math inline">\(\mathcal{S}\)</span>
+is an optimal schedule we just need to show that the size of <span
+class="math inline">\(\mathcal{S}\)</span> is as large as possible
+w.r.t. valid schedules. This is a bit tricky to show, so we’ll first
+give an overview of the steps. We will:</p>
+<ul>
+<li><p>Assume that we have an optimal schedule <span
+class="math inline">\(\mathcal{O}\)</span>.</p></li>
+<li><p>Show that we can incrementally transform <span
+class="math inline">\(\mathcal{O}\)</span> into a new optimal schedule
+<span class="math inline">\(\mathcal{O}&#39;\)</span> that is more
+similar to <span class="math inline">\(\mathcal{S}\)</span>.</p></li>
+<li><p>Repeatedly apply the transformation from <span
+class="math inline">\(\mathcal{O}\)</span> to an optimal schedule <span
+class="math inline">\(\mathcal{O}&#39;\)</span> until we get the same
+schedule as <span class="math inline">\(\mathcal{S}\)</span> which shows
+that <span class="math inline">\(\mathcal{S}\)</span> is optimal as well
+(since each application of the transformation is also optimal).</p></li>
+</ul>
+<p>Suppose <span class="math inline">\(\mathcal{O}\)</span> is an
+optimal schedule. Since schedules are functions from activities to
+classrooms (or <span class="math inline">\(\bot\)</span>), we may regard
+<span class="math inline">\(\mathcal{O}\)</span> as an assignment of the
+activities ordered by earliest finish time first. Now, let <span
+class="math inline">\(\ell\)</span> denote the first activity scheduled
+such that <span class="math inline">\(\mathcal{O}\)</span> and <span
+class="math inline">\(\mathcal{S}\)</span> differ. Thus, for every
+activity <span class="math inline">\(1 \le i &lt; \ell\)</span>, we have
+that <span class="math inline">\(\mathcal{O}(i) =
+\mathcal{S}(i)\)</span>. We will prove the following theorem whose
+importance we will see shortly.</p>
+<div class="thm">
+<p><strong>Theorem 3</strong>. <em>There exists a schedule <span
+class="math inline">\(\mathcal{O}&#39;\)</span> which is:</em></p>
+<ul>
+<li><p><em>optimal;</em></p></li>
+<li><p><em>for every activity <span class="math inline">\(j\)</span>
+with <span class="math inline">\(1 \le j \le \ell\)</span>, we have
+<span class="math inline">\(\mathcal{S}(j) =
+\mathcal{O}&#39;(j)\)</span> i.e., <span
+class="math inline">\(\mathcal{O}&#39;\)</span> and <span
+class="math inline">\(\mathcal{S}\)</span> schedule activity <span
+class="math inline">\(j\)</span> the same way.</em></p></li>
+</ul>
+</div>
+<div class="proof">
+<p><em>Proof.</em> We will describe how to construct the schedule <span
+class="math inline">\(\mathcal{O}&#39;\)</span>. Then, to argue that
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, we
+will show that: <span class="math inline">\(\mathcal{O}&#39;\)</span>
+does not assign an activity to a classroom s.t. an activity will overlap
+with a distinct activity already assigned to the same classroom; and
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is the same size
+as <span class="math inline">\(\mathcal{O}\)</span> which is already
+known to be of maximum size w.r.t. valid schedules as we assumed <span
+class="math inline">\(\mathcal{O}\)</span> is optimal.</p>
+<p>For every activity <span class="math inline">\(1 \le i &lt;
+\ell\)</span>, put <span class="math display">\[\mathcal{O}&#39;(i)
+\mapsto \mathcal{O}(i) = \mathcal{S}(i)\]</span> i.e., assign each
+activity <span class="math inline">\(i\)</span> the same way <span
+class="math inline">\(\mathcal{O}\)</span> does (which we may recall
+that by defn. of <span class="math inline">\(\ell\)</span>, this is the
+same as <span class="math inline">\(\mathcal{S}\)</span>). Then, for
+activity <span class="math inline">\(\ell\)</span>, put <span
+class="math display">\[\mathcal{O}&#39;(\ell) \mapsto
+\mathcal{S}(\ell)\]</span> i.e., assign activity <span
+class="math inline">\(\ell\)</span> the same way <span
+class="math inline">\(\mathcal{S}\)</span> does.</p>
+<p>For the remaining activities <span class="math inline">\(k &gt;
+\ell\)</span>, we must distinguish cases on how <span
+class="math inline">\(\mathcal{S}\)</span> and <span
+class="math inline">\(\mathcal{O}\)</span> assign activity <span
+class="math inline">\(\ell\)</span>.</p>
+<ul>
+<li><p>If <span class="math inline">\(\mathcal{S}(\ell) = \bot\)</span>
+and <span class="math inline">\(\mathcal{O}(\ell) = c \in C\)</span>,
+then this means that <span class="math inline">\(\mathcal{S}\)</span>
+was unable to assign activity <span class="math inline">\(\ell\)</span>
+to a classroom so the largest finish time of every activity assigned to
+classroom thus far overlaps with activity <span
+class="math inline">\(\ell\)</span>. But, since <span
+class="math inline">\(\mathcal{S}(i) = \mathcal{O}(i)\)</span> for every
+activity <span class="math inline">\(1 \le i &lt; \ell\)</span>, this
+would mean that since <span class="math inline">\(\mathcal{O}\)</span>
+is optimal and hence a valid schedule, we get that there must exist a
+classroom which does not overlap with activity <span
+class="math inline">\(\ell\)</span> – contradicting that <span
+class="math inline">\(\mathcal{S}\)</span> was unable to assign activity
+<span class="math inline">\(\ell\)</span> to a classroom. Hence, this
+case is impossible.</p></li>
+<li><p>Suppose <span class="math inline">\(\mathcal{S}(\ell) = c \in
+C\)</span> and <span class="math inline">\(\mathcal{O}(\ell) =
+\bot\)</span>. Then, for every activity <span class="math inline">\(k
+&gt; \ell\)</span>, we put <span
+class="math display">\[\mathcal{O}&#39;(k) \mapsto
+                    \begin{cases}
+                        \bot &amp; \text{if $\ell, k$ overlap and
+$\mathcal{O}(k) = c$} \\
+                        \mathcal{O}(k) &amp; \text{otherwise} \\
+                    \end{cases}\]</span></p>
+<p>Observe that the only activities <span
+class="math inline">\(\mathcal{O}\)</span> and <span
+class="math inline">\(\mathcal{O}&#39;\)</span> assign differently
+are:</p>
+<ul>
+<li><p>activity <span class="math inline">\(\ell\)</span> where we
+recall <span class="math inline">\(\mathcal{O}&#39;(\ell) =
+\mathcal{S}(\ell) =c\)</span>; and</p></li>
+<li><p>any activity <span class="math inline">\(k &gt; \ell\)</span> for
+which <span class="math inline">\(\mathcal{O}(k) =c\)</span> and <span
+class="math inline">\(k,\ell\)</span> overlap where we put <span
+class="math inline">\(\mathcal{O}&#39;(k) = \bot\)</span>.</p></li>
+</ul>
+<p>Obviously, this definition makes <span
+class="math inline">\(\mathcal{O}&#39;\)</span> a valid schedule since
+<span class="math inline">\(\mathcal{O}\)</span> is a valid schedule,
+and any activity which could overlap with another activity assigned to
+the same classroom in <span
+class="math inline">\(\mathcal{O}&#39;\)</span> must then be assigned to
+classroom <span class="math inline">\(c\)</span> and overlap with
+activity <span class="math inline">\(\ell\)</span>, but such an activity
+is not scheduled in <span
+class="math inline">\(\mathcal{O}&#39;\)</span>. Thus, <span
+class="math inline">\(\mathcal{O}&#39;\)</span> is a valid schedule.</p>
+<p>Now, to show that <span
+class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, all that
+remains is to show that <span
+class="math inline">\(\mathcal{O}&#39;\)</span> has the largest size
+w.r.t. valid schedules. We show this by showing that <span
+class="math inline">\(\mathcal{O}&#39;\)</span> has the same size as
+<span class="math inline">\(\mathcal{O}\)</span>. Note that <span
+class="math inline">\(\mathcal{O}&#39;\)</span> assigns <span
+class="math inline">\(\ell\)</span> to a classroom, but <span
+class="math inline">\(\mathcal{O}\)</span> does not assign <span
+class="math inline">\(\ell\)</span> to a classroom. So, to show that
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, since
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is essentially
+identical to <span class="math inline">\(\mathcal{O}\)</span>, it
+suffices to show that there is at most one activity <span
+class="math inline">\(k&#39; &gt; \ell\)</span> which satisfies <span
+class="math inline">\(\ell,k&#39;\)</span> overlap, and <span
+class="math inline">\(\mathcal{O}(k&#39;) = c\)</span>. Suppose for the
+sake of contradiction that <span
+class="math inline">\(k&#39;,k&#39;&#39; &gt; \ell\)</span> are
+distinct, both overlaps with <span class="math inline">\(\ell\)</span>,
+and <span class="math inline">\(\mathcal{O}(k&#39;) =
+\mathcal{O}(k&#39;&#39;) = c\)</span>. Without loss of generality, we
+may assume that <span class="math inline">\(k&#39; &lt;
+k&#39;&#39;\)</span>. Using that we assumed all activities are ordered
+by earliest finish time first, we know that <span
+class="math display">\[f_{\ell} \le f_{k&#39;} \le
+f_{k&#39;&#39;}\]</span> So, using that we assumed that both <span
+class="math inline">\(k&#39;,k&#39;&#39;\)</span> overlap with <span
+class="math inline">\(\ell\)</span>, it’s easy to see that <span
+class="math inline">\(f_\ell \in [s_\ell, f_\ell] \cap [s_{k&#39;},
+f_{k&#39;}]\)</span> and <span class="math inline">\(f_\ell \in [s_\ell,
+f_\ell] \cap [s_{k&#39;&#39;}, f_{k&#39;&#39;}]\)</span>. Thus, <span
+class="math inline">\(f_\ell \in [s_{k&#39;}, f_{k&#39;}] \cap
+[s_{k&#39;&#39;}, f_{k&#39;&#39;}]\)</span> follows i.e., <span
+class="math inline">\(k&#39;,k&#39;&#39;\)</span> overlap and are
+assigned to the same classroom <span class="math inline">\(c\)</span> in
+<span class="math inline">\(\mathcal{O}\)</span> – contradicting that
+<span class="math inline">\(\mathcal{O}\)</span> is valid.</p></li>
+<li><p>Suppose <span class="math inline">\(\mathcal{S}(\ell) = c \in
+C\)</span> and <span class="math inline">\(\mathcal{O}(\ell) = c&#39;
+\in C\)</span> where we necessarily have <span class="math inline">\(c
+                \neq c&#39;\)</span> since <span
+class="math inline">\(\ell\)</span> is the first activity for which
+<span class="math inline">\(\mathcal{S}\)</span> and <span
+class="math inline">\(\mathcal{O}\)</span> differ.</p>
+<p>Then, for every activity <span class="math inline">\(k &gt;
+i\)</span>, we put <span class="math display">\[\mathcal{O}&#39;(k)
+\mapsto
+                    \begin{cases}
+                        c&#39; &amp; \text{if $\mathcal{O}(k) = c$} \\
+                        c &amp; \text{if $\mathcal{O}(k) = c&#39;$} \\
+                        \mathcal{O}(k) &amp; \text{otherwise}
+                    \end{cases}\]</span></p>
+<p>Observe that the only activities <span
+class="math inline">\(\mathcal{O}\)</span> and <span
+class="math inline">\(\mathcal{O}&#39;\)</span> assign differently
+are:</p>
+<ul>
+<li><p>activity <span class="math inline">\(\ell\)</span> where we
+recall <span class="math inline">\(\mathcal{O}&#39;(\ell) =
+\mathcal{S}(\ell) =c \neq c&#39; = \mathcal{O}(\ell)\)</span>;
+and</p></li>
+<li><p>any activity <span class="math inline">\(k &gt; \ell\)</span> for
+which either <span class="math inline">\(\mathcal{O}(k) = c\)</span> (so
+<span class="math inline">\(\mathcal{O}&#39;(k) = c&#39;\)</span>) or
+<span class="math inline">\(\mathcal{O}(k) =c&#39;\)</span> (so <span
+class="math inline">\(\mathcal{O}&#39;(k) = c\)</span>).</p></li>
+</ul>
+<p>It’s clear that <span class="math inline">\(\mathcal{O}&#39;\)</span>
+has the same size as <span class="math inline">\(\mathcal{O}\)</span>,
+and hence has the largest size w.r.t. valid schedules. So, to show that
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, we
+need to show that <span class="math inline">\(\mathcal{O}&#39;\)</span>
+is valid i.e., all activities assigned to the same classrooms do not
+overlap. Since <span class="math inline">\(\mathcal{O}\)</span> and
+<span class="math inline">\(\mathcal{O}&#39;\)</span> are essentially
+identical, we only need to show that the activities assigned to
+classrooms <span class="math inline">\(c\)</span> (and <span
+class="math inline">\(c&#39;\)</span> resp.) do not overlap.</p>
+<p>We first show that no activities assigned to classroom <span
+class="math inline">\(c\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span> overlap. Note that <span
+class="math inline">\(\ell\)</span> since <span
+class="math inline">\(\mathcal{O}&#39;(\ell) = \mathcal{S} = c\)</span>,
+by defn. of <span class="math inline">\(\mathcal{S}\)</span>, we know
+that <span class="math inline">\(\ell\)</span> does not overlap with any
+activity <span class="math inline">\(1 \le i &lt; \ell\)</span> assigned
+to <span class="math inline">\(c\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span>. Recall that <span
+class="math inline">\(\mathcal{O}(\ell) = c&#39;\)</span>, so for any
+activity <span class="math inline">\(k &gt; \ell\)</span> satisfying
+<span class="math inline">\(\mathcal{O}&#39;(k) = c\)</span>, we know
+that <span class="math inline">\(\mathcal{O}(k) = c&#39;\)</span>, so
+since <span class="math inline">\(\mathcal{O}\)</span> is valid, this
+implies that no activity <span class="math inline">\(k\)</span> can
+overlap with any activity previously assigned to <span
+class="math inline">\(c\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span>.</p>
+<p>Now, we show that no activities assigned to classroom <span
+class="math inline">\(c&#39;\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span> overlap. Obviously, all
+activities <span class="math inline">\(1 \le i &lt; \ell\)</span>
+assigned to classroom <span class="math inline">\(c&#39;\)</span> in
+<span class="math inline">\(\mathcal{O}&#39;\)</span> do not
+overlap.</p>
+<p>Let <span class="math inline">\(t &lt; \ell\)</span> denote the
+largest activity satisfying <span
+class="math inline">\(\mathcal{O}&#39;(t) = c\)</span>, and let <span
+class="math inline">\(t&#39; &lt; \ell\)</span> denote the largest
+activity satisfying <span class="math inline">\(\mathcal{O}&#39;(t&#39;)
+= c&#39;\)</span>. Note that <span class="math inline">\(\ell \ge
+\ell\)</span> is the smallest activity satisfying <span
+class="math inline">\(\mathcal{O}&#39;(\ell) = c\)</span>, and let <span
+class="math inline">\(\ell&#39; &gt; \ell\)</span> be the smallest
+activity satisfying <span
+class="math inline">\(\mathcal{O}&#39;(\ell&#39;) = c&#39;\)</span> (so
+<span class="math inline">\(\mathcal{O}(\ell&#39;) = c\)</span>). If
+such activities do not exist, then the following results are
+trivial.</p>
+<p>We show that <span class="math inline">\(t&#39;,\ell&#39;\)</span> do
+not overlap. By defn. of <span
+class="math inline">\(\mathcal{S}\)</span>, since <span
+class="math inline">\(\mathcal{S}(\ell) = c\)</span>, we get that <span
+class="math display">\[f_{t&#39;} \le f_{t}\]</span> since <span
+class="math inline">\(t&#39;\)</span> and <span
+class="math inline">\(\ell\)</span> do not overlap (since <span
+class="math inline">\(\mathcal{O}(t&#39;) = c&#39;\)</span>, <span
+class="math inline">\(\mathcal{O}(\ell) = c&#39;\)</span>, and <span
+class="math inline">\(\mathcal{O}\)</span> is valid) and <span
+class="math inline">\(\mathcal{S}\)</span> assigned activity <span
+class="math inline">\(\ell\)</span> to the classroom with the largest
+<span class="math inline">\(f_t\)</span> s.t. <span
+class="math inline">\(\ell,t\)</span> do not overlap.</p>
+<p>Then, since we know <span class="math inline">\(\mathcal{O}(t) =
+c\)</span>, <span class="math inline">\(\mathcal{O}(\ell&#39;) =
+c\)</span>, and <span class="math inline">\(\mathcal{O}\)</span> is
+valid, we get that <span class="math inline">\(t\)</span> and <span
+class="math inline">\(\ell&#39;\)</span> do not overlap, so since <span
+class="math inline">\(f_{t&#39;} \le f_{t}\)</span>, it certainly
+follows that <span class="math inline">\(t&#39;\)</span> and <span
+class="math inline">\(\ell&#39;\)</span> do not overlap as required.</p>
+<p>Finally, for any <span class="math inline">\(k &gt; \ell&#39; &gt;
+\ell\)</span> satisfying <span class="math inline">\(\mathcal{O}&#39;(k)
+= c&#39;\)</span>, we know that <span
+class="math inline">\(\mathcal{O}(k) = c\)</span>, so since <span
+class="math inline">\(\mathcal{O}\)</span> is valid, this implies that
+no activity <span class="math inline">\(k\)</span> can overlap with any
+activity previously assigned to <span
+class="math inline">\(c&#39;\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span>.</p></li>
+</ul>
+<p>It’s easy to see that this concludes all possible cases, so the proof
+is complete.</p>
+<p>For completeness, we include full construction of <span
+class="math inline">\(\mathcal{O}&#39;\)</span> omitting the impossible
+cases. <span class="math display">\[\mathcal{O}&#39;(i) \mapsto
+            \begin{cases}
+                \mathcal{O}(i) = \mathcal{S}(i) &amp; \text{if $1 \le i
+&lt; \ell$} \\
+                \mathcal{S}(i) &amp; \text{if $i = \ell$} \\
+                \begin{cases}
+                    \begin{cases}
+                        \bot &amp; \text{if $\ell,i$ overlap and
+$\mathcal{O}(k) = c$} \\
+                        \mathcal{O}(i) &amp; \text{otherwise} \\
+                    \end{cases}
+                            &amp; \text{if $\mathcal{S}(\ell) = c \in C$
+and $\mathcal{O}(\ell) =\bot$} \\
+                    \begin{cases}
+                        c&#39; &amp; \text{if $\mathcal{O}(i) = c$} \\
+                        c &amp; \text{if $\mathcal{O}(i) = c&#39;$} \\
+                        \mathcal{O}(i) &amp; \text{otherwise} \\
+                    \end{cases}
+                            &amp; \text{if $\mathcal{S}(\ell) = c \in C$
+and $\mathcal{O}(\ell) =c&#39; \in C$} \\
+                \end{cases}
+                    &amp; \text{if $i &gt; \ell$} \\
+            \end{cases}\]</span> ◻</p>
+</div>
+<p>Finally, we may apply this theorem at most <span
+class="math inline">\(n\)</span> times (since there are at most <span
+class="math inline">\(n\)</span> activities in any schedule) to make
+<span class="math inline">\(\mathcal{O}\)</span> identical to <span
+class="math inline">\(\mathcal{S}\)</span> while still being optimal.
+This immediately proves correctness of our algorithm and is summed up
+with the following theorem.</p>
+<div class="thm">
+<p><strong>Theorem 4</strong>. <em><span
+class="math inline">\(\mathcal{S}\)</span> is an optimal
+solution.</em></p>
+</div>
+<h1 data-number="5"><span class="header-section-number">5</span> An
+Implementation in Haskell</h1>
+<p>If we made it through that rather wordy proof, the implementation in
+Haskell shouldn’t be that tricky. We need to do two things:</p>
+<ol>
+<li><p>Sort the input activities by earliest finish time.</p></li>
+<li><p>Maintain an efficient way find the classroom with the largest
+<span class="math inline">\(t_c\)</span> (i.e., the largest finish time
+of all already assigned activities for each classroom) that does not
+overlap with the next activity’s start time.</p></li>
+</ol>
+<p>We know that we can sort lists in time <span
+class="math inline">\(O(n \log n)\)</span>. Moreover, we can use an
+ordered tree of size <span class="math inline">\(m\)</span> containing
+the variables <span class="math inline">\(t_c\)</span> (i.e., the
+largest finish time of all already assigned activities for each
+classroom) to find the largest <span class="math inline">\(t_c\)</span>
+which does not overlap with the activity currently being processed in
+time <span class="math inline">\(O(\log m)\)</span>. We must repeat this
+operation <span class="math inline">\(n\)</span> times, so this will
+time <span class="math inline">\(O(n \log m)\)</span>. Altogether, this
+algorithm will take time <span class="math inline">\(O(n \log n + n \log
+m)\)</span>.</p>
+<p>Note that in the Kattis question, it suffices to just return the size
+of the optimal solution and it is not necessary to actually compute a
+schedule. Thus, when implementing the ordered tree containing the
+variables <span class="math inline">\(t_c\)</span>, it is not necessary
+to do the extra book keeping of the associated classroom for <span
+class="math inline">\(t_c\)</span>, and we may instead just maintain a
+multiset of variables <span class="math inline">\(t_c\)</span>.</p>
+<p>Luckily, there are some libraries on the Kattis server which provides
+us with these mechanisms. In particular, <code>Data.List.sortOn</code>
+can sort a list in <span class="math inline">\(O(n \log n)\)</span>, and
+we may use an <code>Data.IntMap.Strict.IntMap</code> to implement a
+multiset that can be used to query the largest <span
+class="math inline">\(t_c\)</span> which does not overlap with the next
+activity’s start time in <span class="math inline">\(O(\log m)\)</span>
+with the function <code>Data.IntMap.Strict.lookupLT</code>.</p>
+<p>Concretely, an implementation is as follows.</p>
+<div class="sourceCode" id="cb2" data-language="Haskell"><pre
+class="sourceCode haskell"><code class="sourceCode haskell"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Tuple</span> <span class="kw">as</span> <span class="dt">Tuple</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.List</span> <span class="kw">as</span> <span class="dt">List</span></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.Maybe</span> <span class="kw">as</span> <span class="dt">Maybe</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.ByteString.Char8</span> (<span class="dt">ByteString</span>)</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.ByteString.Char8</span> <span class="kw">as</span> <span class="dt">B</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="dt">Data.IntMap.Strict</span> (<span class="dt">IntMap</span>)</span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">import</span> <span class="kw">qualified</span> <span class="dt">Data.IntMap.Strict</span> <span class="kw">as</span> <span class="dt">IntMap</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a><span class="co">-- | unsafely parses / reads an &#39;Int&#39;</span></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="ot">unsafeReadInt ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>unsafeReadInt <span class="ot">=</span> <span class="fu">fst</span> <span class="op">.</span> <span class="dt">Maybe</span><span class="op">.</span>fromJust <span class="op">.</span> B.readInt</span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">-- | main function</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="ot">main ::</span> <span class="dt">IO</span> ()</span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a>main <span class="ot">=</span> B.interact </span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a>    ( format</span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span> runner</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span> parse</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>    )</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a><span class="co">-- | &#39;parse&#39; parses the given Kattis input s.t. we have</span></span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a><span class="co">-- &gt; (n, m, list of activities&#39; start and finish time)</span></span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a><span class="ot">parse ::</span> <span class="dt">ByteString</span> <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>, [(<span class="dt">Int</span>,<span class="dt">Int</span>)])</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>parse </span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> go</span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span> <span class="fu">map</span> B.words  <span class="co">-- [ByteString] -&gt; [[ByteString]]</span></span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>    <span class="op">.</span> B.lines      <span class="co">-- ByteString -&gt; [ByteString]</span></span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="ot">    go ::</span> [[<span class="dt">ByteString</span>]] <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>, [(<span class="dt">Int</span>,<span class="dt">Int</span>)])</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a>    go ([n,m]<span class="op">:</span>activities) <span class="ot">=</span> </span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a>        ( unsafeReadInt n</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a>        , unsafeReadInt m</span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a>        , <span class="fu">map</span> (\[s, f] <span class="ot">-&gt;</span> (unsafeReadInt s, unsafeReadInt f)) activities</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a>        )</span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a>    go _ <span class="ot">=</span> <span class="fu">error</span> <span class="st">&quot;Invalid input&quot;</span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">-- | &#39;format&#39; formats the resulting answer into the desired Kattis output</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="ot">format ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">ByteString</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a>format <span class="ot">=</span> B.pack <span class="op">.</span> <span class="fu">show</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">-- | &#39;runner&#39; executes the main logic of this algorithm.</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">--</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">--      1. Sorts according to the heuristic (earliest finish time first)</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">--</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">--      2. Schedules an activity according to the classroom with the latest</span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">--      compatible start time</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="ot">runner ::</span> (<span class="dt">Int</span>, <span class="dt">Int</span>, [(<span class="dt">Int</span>,<span class="dt">Int</span>)]) <span class="ot">-&gt;</span> <span class="dt">Int</span></span>
+<span id="cb2-50"><a href="#cb2-50" aria-hidden="true" tabindex="-1"></a>runner (n,m,activities) </span>
+<span id="cb2-51"><a href="#cb2-51" aria-hidden="true" tabindex="-1"></a>    <span class="ot">=</span> <span class="fu">fst</span> </span>
+<span id="cb2-52"><a href="#cb2-52" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span> List.foldl&#39; go (<span class="dv">0</span>, initClassrooms)</span>
+<span id="cb2-53"><a href="#cb2-53" aria-hidden="true" tabindex="-1"></a>    <span class="op">$</span> List.sortOn <span class="fu">snd</span> activities <span class="co">-- sort according to our heuristic</span></span>
+<span id="cb2-54"><a href="#cb2-54" aria-hidden="true" tabindex="-1"></a>  <span class="kw">where</span></span>
+<span id="cb2-55"><a href="#cb2-55" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- initially all @m@ classrooms have $$t_c$$ of 0. </span></span>
+<span id="cb2-56"><a href="#cb2-56" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- the &#39;IntMap&#39; maps $$t_c$$ to its multiplicity i.e., the number of</span></span>
+<span id="cb2-57"><a href="#cb2-57" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- classrooms which have the same $$t_c$$</span></span>
+<span id="cb2-58"><a href="#cb2-58" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- Note: if we wanted to actually produce a schedule, the type we would</span></span>
+<span id="cb2-59"><a href="#cb2-59" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- want is @IntMap [Int]@ where @[Int]@ is the list of classrooms.</span></span>
+<span id="cb2-60"><a href="#cb2-60" aria-hidden="true" tabindex="-1"></a><span class="ot">    initClassrooms ::</span> <span class="dt">IntMap</span> <span class="dt">Int</span></span>
+<span id="cb2-61"><a href="#cb2-61" aria-hidden="true" tabindex="-1"></a>    initClassrooms <span class="ot">=</span> IntMap.singleton <span class="dv">0</span> m</span>
+<span id="cb2-62"><a href="#cb2-62" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-63"><a href="#cb2-63" aria-hidden="true" tabindex="-1"></a><span class="ot">    go ::</span> (<span class="dt">Int</span>, <span class="dt">IntMap</span> <span class="dt">Int</span>) <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">Int</span>) <span class="ot">-&gt;</span> (<span class="dt">Int</span>, <span class="dt">IntMap</span> <span class="dt">Int</span>)</span>
+<span id="cb2-64"><a href="#cb2-64" aria-hidden="true" tabindex="-1"></a>    go (ans, classrooms) (s,f) <span class="ot">=</span> </span>
+<span id="cb2-65"><a href="#cb2-65" aria-hidden="true" tabindex="-1"></a>        <span class="kw">case</span> IntMap.lookupLT s classrooms <span class="kw">of</span></span>
+<span id="cb2-66"><a href="#cb2-66" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Just</span> (classroom, _multiplicity) <span class="ot">-&gt;</span> </span>
+<span id="cb2-67"><a href="#cb2-67" aria-hidden="true" tabindex="-1"></a>                <span class="co">-- we schedule the activity</span></span>
+<span id="cb2-68"><a href="#cb2-68" aria-hidden="true" tabindex="-1"></a>                ( <span class="dv">1</span> <span class="op">+</span> ans</span>
+<span id="cb2-69"><a href="#cb2-69" aria-hidden="true" tabindex="-1"></a>                , insertClassroom f </span>
+<span id="cb2-70"><a href="#cb2-70" aria-hidden="true" tabindex="-1"></a>                    (deleteClassroom classroom classrooms)</span>
+<span id="cb2-71"><a href="#cb2-71" aria-hidden="true" tabindex="-1"></a>                )</span>
+<span id="cb2-72"><a href="#cb2-72" aria-hidden="true" tabindex="-1"></a>            <span class="dt">Nothing</span> <span class="ot">-&gt;</span> </span>
+<span id="cb2-73"><a href="#cb2-73" aria-hidden="true" tabindex="-1"></a>                <span class="co">-- or we don&#39;t schedule it</span></span>
+<span id="cb2-74"><a href="#cb2-74" aria-hidden="true" tabindex="-1"></a>                (ans, classrooms)</span>
+<span id="cb2-75"><a href="#cb2-75" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-76"><a href="#cb2-76" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- deleting an element in the multiset</span></span>
+<span id="cb2-77"><a href="#cb2-77" aria-hidden="true" tabindex="-1"></a><span class="ot">    deleteClassroom ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IntMap</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IntMap</span> <span class="dt">Int</span></span>
+<span id="cb2-78"><a href="#cb2-78" aria-hidden="true" tabindex="-1"></a>    deleteClassroom <span class="ot">=</span>  IntMap.alter go</span>
+<span id="cb2-79"><a href="#cb2-79" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb2-80"><a href="#cb2-80" aria-hidden="true" tabindex="-1"></a>        go <span class="dt">Nothing</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb2-81"><a href="#cb2-81" aria-hidden="true" tabindex="-1"></a>        go (<span class="dt">Just</span> count) </span>
+<span id="cb2-82"><a href="#cb2-82" aria-hidden="true" tabindex="-1"></a>            <span class="op">|</span> count <span class="op">==</span> <span class="dv">1</span> <span class="ot">=</span> <span class="dt">Nothing</span></span>
+<span id="cb2-83"><a href="#cb2-83" aria-hidden="true" tabindex="-1"></a>            <span class="op">|</span> <span class="fu">otherwise</span> <span class="ot">=</span> <span class="dt">Just</span> (count <span class="op">-</span> <span class="dv">1</span>)</span>
+<span id="cb2-84"><a href="#cb2-84" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-85"><a href="#cb2-85" aria-hidden="true" tabindex="-1"></a>    <span class="co">-- inserting an element in the multiset</span></span>
+<span id="cb2-86"><a href="#cb2-86" aria-hidden="true" tabindex="-1"></a><span class="ot">    insertClassroom ::</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IntMap</span> <span class="dt">Int</span> <span class="ot">-&gt;</span> <span class="dt">IntMap</span> <span class="dt">Int</span></span>
+<span id="cb2-87"><a href="#cb2-87" aria-hidden="true" tabindex="-1"></a>    insertClassroom <span class="ot">=</span> IntMap.alter go</span>
+<span id="cb2-88"><a href="#cb2-88" aria-hidden="true" tabindex="-1"></a>      <span class="kw">where</span></span>
+<span id="cb2-89"><a href="#cb2-89" aria-hidden="true" tabindex="-1"></a>        go <span class="dt">Nothing</span> <span class="ot">=</span> <span class="dt">Just</span> <span class="dv">1</span></span>
+<span id="cb2-90"><a href="#cb2-90" aria-hidden="true" tabindex="-1"></a>        go (<span class="dt">Just</span> count) <span class="ot">=</span> <span class="dt">Just</span> (count <span class="op">+</span> <span class="dv">1</span>)</span></code></pre></div>
+</body>
+</html>
