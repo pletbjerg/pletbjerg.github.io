@@ -53,7 +53,7 @@ This problem is exactly the
     \href{https://open.kattis.com/problems/classrooms}{Classrooms} problem on
     Kattis which (at the time of writing this) has a difficulty of 6.9 (Hard)!
 The solution presented is a (somewhat) tricky greedy algorithm.
-There aren't very many Haskell solutions, so I figured I'd toss put one in
+There aren't very many Haskell solutions, so I figured I'd toss one in
     the mix.
 
 As an overview, we will:
@@ -309,7 +309,8 @@ We will prove the following theorem whose importance we will see shortly.
                 it suffices to show that there is at most one activity $k' > \ell$
                 which satisfies $\ell,k'$ overlap, and $\mathcal{O}(k') = c$.
             Suppose for the sake of contradiction that $k',k'' > \ell$ are distinct,
-                both overlaps with $\ell$, and $\mathcal{O}(k') = \mathcal{O}(k'') = c$.
+                both overlaps with $\ell$, 
+                and $\mathcal{O}(k') = \mathcal{O}(k'') = c$.
             Without loss of generality, we may assume that $k' < k''$.
             Using that we assumed all activities are ordered by earliest finish time first, we know that
             \begin{equation}
@@ -351,9 +352,9 @@ We will prove the following theorem whose importance we will see shortly.
 
             It's clear that $\mathcal{O}'$ has the same size as $\mathcal{O}$,
                 and hence has the largest size w.r.t. valid schedules.
-            So, to show that $\mathcal{O}'$ is optimal, we need to show that
-                $\mathcal{O}'$ is valid i.e., all activities assigned to the
-                same classrooms do not overlap.
+            So, to show that $\mathcal{O}'$ is optimal, all that remains is to
+                show that $\mathcal{O}'$ is valid i.e., all activities assigned
+                to the same classrooms do not overlap.
             Since $\mathcal{O}$ and $\mathcal{O}'$ are essentially identical,
                 we only need to show that the activities assigned to classrooms
                 $c$ (and $c'$ resp.)
