@@ -238,9 +238,9 @@ you’ve been (unfortunately) tasked with assigning clubs’ activities at
 specified start times and finish times to a limited number of
 classrooms. Clubs despise sharing so if a club is given a classroom, the
 club must have the classroom completely to themselves from its
-activity’s start time to finish time (inclusive). As there are only a
-limited number of classrooms, you’d like to maximize the number of
-activities that can be scheduled.</p>
+activity’s start time to finish time (inclusive). As there are limited
+classrooms, you’d like to maximize the number of activities that can be
+scheduled.</p>
 <p>This problem is exactly the <a
 href="https://open.kattis.com/problems/classrooms">Classrooms</a>
 problem on Kattis which (at the time of writing this) has a difficulty
@@ -635,13 +635,13 @@ classrooms <span class="math inline">\(c\)</span> (and <span
 class="math inline">\(c&#39;\)</span> resp.) do not overlap.</p>
 <p>We first show that no activities assigned to classroom <span
 class="math inline">\(c\)</span> in <span
-class="math inline">\(\mathcal{O}&#39;\)</span> overlap. Note that <span
-class="math inline">\(\ell\)</span> since <span
-class="math inline">\(\mathcal{O}&#39;(\ell) = \mathcal{S} = c\)</span>,
-by defn. of <span class="math inline">\(\mathcal{S}\)</span>, we know
-that <span class="math inline">\(\ell\)</span> does not overlap with any
-activity <span class="math inline">\(1 \le i &lt; \ell\)</span> assigned
-to <span class="math inline">\(c\)</span> in <span
+class="math inline">\(\mathcal{O}&#39;\)</span> overlap. Note that since
+<span class="math inline">\(\mathcal{O}&#39;(\ell) = \mathcal{S} =
+c\)</span>, by defn. of <span
+class="math inline">\(\mathcal{S}\)</span>, we know that <span
+class="math inline">\(\ell\)</span> does not overlap with any activity
+<span class="math inline">\(1 \le i &lt; \ell\)</span> assigned to <span
+class="math inline">\(c\)</span> in <span
 class="math inline">\(\mathcal{O}&#39;\)</span>. Recall that <span
 class="math inline">\(\mathcal{O}(\ell) = c&#39;\)</span>, so for any
 activity <span class="math inline">\(k &gt; \ell\)</span> satisfying
@@ -707,7 +707,7 @@ class="math inline">\(\mathcal{O}&#39;\)</span>.</p></li>
 </ul>
 <p>It’s easy to see that this concludes all possible cases, so the proof
 is complete.</p>
-<p>For completeness, we include full construction of <span
+<p>For completeness, we include the full construction of <span
 class="math inline">\(\mathcal{O}&#39;\)</span> omitting the impossible
 cases. <span class="math display">\[\mathcal{O}&#39;(i) \mapsto
             \begin{cases}
