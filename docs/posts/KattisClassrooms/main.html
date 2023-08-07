@@ -246,7 +246,7 @@ href="https://open.kattis.com/problems/classrooms">Classrooms</a>
 problem on Kattis which (at the time of writing this) has a difficulty
 of 6.9 (Hard)! The solution presented is a (somewhat) tricky greedy
 algorithm. There aren’t very many Haskell solutions, so I figured I’d
-toss put one in the mix.</p>
+toss one in the mix.</p>
 <p>As an overview, we will:</p>
 <ul>
 <li><p>Define notation.</p></li>
@@ -624,11 +624,12 @@ class="math inline">\(\mathcal{O}&#39;(k) = c\)</span>).</p></li>
 <p>It’s clear that <span class="math inline">\(\mathcal{O}&#39;\)</span>
 has the same size as <span class="math inline">\(\mathcal{O}\)</span>,
 and hence has the largest size w.r.t. valid schedules. So, to show that
-<span class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, we
-need to show that <span class="math inline">\(\mathcal{O}&#39;\)</span>
-is valid i.e., all activities assigned to the same classrooms do not
-overlap. Since <span class="math inline">\(\mathcal{O}\)</span> and
-<span class="math inline">\(\mathcal{O}&#39;\)</span> are essentially
+<span class="math inline">\(\mathcal{O}&#39;\)</span> is optimal, all
+that remains is to show that <span
+class="math inline">\(\mathcal{O}&#39;\)</span> is valid i.e., all
+activities assigned to the same classrooms do not overlap. Since <span
+class="math inline">\(\mathcal{O}\)</span> and <span
+class="math inline">\(\mathcal{O}&#39;\)</span> are essentially
 identical, we only need to show that the activities assigned to
 classrooms <span class="math inline">\(c\)</span> (and <span
 class="math inline">\(c&#39;\)</span> resp.) do not overlap.</p>
